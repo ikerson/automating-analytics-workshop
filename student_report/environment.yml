@@ -1,0 +1,14 @@
+name: student-report
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - oracledb>=2.0
+    - pandas>=2.0
+    - matplotlib>=3.7
+    - openpyxl>=3.1
+    - python-dotenv>=1.0
+    - "urban-education-data[df] @ git+https://github.com/GSU-Analytics/EducationDataAPI.git"

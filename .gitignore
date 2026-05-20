@@ -1,3 +1,9 @@
 /raw
 .claude/
 CLAUDE.md
+student_report/.env
+__pycache__/
+*.pyc
+student_report/reports/*.csv
+student_report/reports/*.png
+student_report/reports/*.xlsx
