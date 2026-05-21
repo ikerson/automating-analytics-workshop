@@ -61,6 +61,20 @@ student_report/
 │   └── survey_middle_schools.csv  # student → middle school survey (simulated)
 ├── tests/                  # pytest unit tests (transform + report)
 └── reports/                # generated outputs (gitignored)
+
+exercises/
+├── data/                   # small thematic CSVs (middle school outreach universe)
+│   ├── outreach_contacts.csv
+│   └── school_survey_2019.csv
+├── session_03_exercise.py
+├── session_04_exercise.py
+├── session_05_exercise.py
+├── session_06_exercise.py
+├── session_07_exercise.py
+├── session_08_exercise.py
+├── session_09_exercise.py
+├── session_10_exercise.py
+└── session_11_exercise.py
 ```
 
 One file, one job. No classes. Functions only where they reduce repetition.
@@ -206,6 +220,62 @@ Oracle EC2                    survey CSV                Urban Institute API
 
 ---
 
+## Module Documentation Structure
+
+Each session is a standalone markdown file. The repo README links all modules and provides a minimal intro. There is no Q&A section (not relevant for this workshop).
+
+### Per-module template
+
+```
+# [Session N] — [Session Title]
+
+## Introduction
+2–3 sentences: problem this session solves, how it fits the pipeline.
+Reference: ATBS chapter | Prior session.
+
+## Code-Along
+### [Subsection]
+Narrative + annotated code blocks building toward the session deliverable.
+
+## Practice Exercise
+> Optional enrichment — complete during the session if time allows,
+> or finish independently on your fork.
+
+### Your Task
+2–4 concrete bullet points.
+Run from the command line: python exercises/session_NN_exercise.py
+
+### Answer
+Complete working solution (at the bottom of the same exercise script).
+
+## Additional Resources
+- ATBS chapter
+- Relevant package docs
+```
+
+### Exercise script format
+
+Each `exercises/session_NN_exercise.py` is runnable as delivered. `TODO:` comments mark what participants fill in. The file structure, imports, and print statements are pre-written. Thematic data files (middle school outreach universe) live in `exercises/data/`.
+
+### Exercise-per-session map
+
+| Session | Topic | Exercise task | Data / source |
+|---|---|---|---|
+| 1 | Demo + overview | — none — | — |
+| 2 | Environment setup | — none — | — |
+| 3 | pandas basics | Load contacts CSV, select columns, drop rows missing phone, save cleaned file | `exercises/data/outreach_contacts.csv` |
+| 4 | Oracle connect | Connect to Oracle, SELECT from `zipcode`, print first 10 rows | Oracle EC2 (VPN required) |
+| 5 | pd.read_sql | Query `course` table, normalize column names, filter subset, save CSV | Oracle EC2 (VPN required) |
+| 6 | API intro | Call API for a different year (2018), check row count, inspect columns | Urban Institute API |
+| 7 | API columns | Select different columns, filter to middle schools (`school_level == 2`), save CSV | Urban Institute API |
+| 8 | Merging | Merge two outreach CSVs on `student_id`, inspect unmatched rows, save result | `exercises/data/` |
+| 9 | Aggregations | `groupby` school size bucket, average enrollment per bucket, `value_counts` on city | `exercises/data/` |
+| 10 | Charts | Horizontal bar chart of top 5 contact schools, save as PNG | `exercises/data/` |
+| 11 | Excel output | Write two DataFrames to separate sheets in one Excel file | `exercises/data/` |
+| 12 | Pipeline | Run `python student_report/main.py --year 2019 --output student_report/reports/` | — |
+
+---
+
 ## Reference Resources
 
 ### `oracle-student-db` (local)
@@ -305,13 +375,24 @@ Lightweight Oracle database connection wrapper built for GSU Analytics projects.
 
 ---
 
+### `GSU-Analytics/oracle-sql-training`
+**Local:** `/Users/ikerson/Library/CloudStorage/OneDrive-GeorgiaStateUniversity/code/oracle-sql-training/`
+
+Prior GSU SQL training course. Reference for module structure and exercise design.
+
+- **Module format:** flat markdown files (one per topic) linked from a minimal README. Each module has: Introduction, Explanation (subsections + code blocks + tables), Exercises (simple + complex problems), Additional Resources, Answers. No Q&A section in this workshop.
+- **Exercise model:** exercises are open-ended SQL problems with no starter code. This workshop adapts the model to Python: each exercise is a pre-written starter script with `TODO:` comments that participants run from the command line.
+- **Quarto / gh-pages:** the repo publishes docs via Quarto books on a `gh-pages` branch. This workshop will adopt the same publishing approach at the end of the development process — not a current priority.
+
+---
+
 ## Decisions
 
 1. **Credentials handling** ✓ — Numbered read-only account (e.g. `student02`, Service: `XEPDB1`). Credentials live in a `.env` file (gitignored); `.env.example` is the committed template. `db.py` loads credentials at runtime via `python-dotenv`. The `student` schema-owner account is NOT used — numbered accounts have SELECT-only access.
 2. **Data join strategy** ✓ — Three-way merge: Oracle enrollment (deduplicated to one row per student) → survey CSV on `student_id` → CCD school directory on `ncessch`. The survey CSV (`data/survey_middle_schools.csv`) is simulated data generated by `generate_survey_csv.py` (author-only, VPN required) and committed to the repo as static data. Participants treat it as a real survey file.
 3. **EducationDataAPI install** ✓ — `pip install "urban-education-data[df] @ git+https://github.com/GSU-Analytics/EducationDataAPI.git"` inside the conda environment. Distribution name is `urban-education-data`; import name is `educationdata`. Not on PyPI — install directly from GitHub.
 4. **Git workflow** ✓ — Participants push to their own forks of the workshop template repo.
-5. **Assessment/exercises** ✓ — Follow-along only. No per-session exercises.
+5. **Assessment/exercises** ✓ — Follow-along is primary. Exercises are optional enrichment. Pre-written starter scripts and thematic data files are committed to `exercises/` in the repo root. Participants fork the repo and run exercise scripts from the command line. Sessions 4 and 5 exercises require VPN. Sessions 1, 2, and 12 have no exercise script.
 
 ---
 
