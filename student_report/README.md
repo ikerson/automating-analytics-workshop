@@ -25,6 +25,37 @@ Outputs written to `reports/`:
 - `school_size_distribution.png` — bar chart of students by school size bucket
 - `student_report.xlsx` — five sheets: Student Data, Top 10 Schools, By ZIP, By School Size, Charts
 
+## Data Flow
+
+```
+Oracle EC2                    survey CSV                Urban Institute API
+(STUDENT schema)         data/survey_middle_schools.csv  (CCD directory)
+      │                              │                          │
+   db.py                        read_csv()                   api.py
+      │                              │                          │
+  enrollment_df                 survey_df                   school_df
+  (one row per                  student_id                  (NY + NJ,
+  student × course)             middle_school_name          fips='36,34')
+                                ncessch
+      │                              │                          │
+      └──────────── transform.py ────┴──────────────────────────┘
+                          │
+             1. deduplicate enrollment → one row per student
+             2. merge students → survey on student_id
+             3. merge result → CCD on ncessch
+             4. assign school_size bucket (enrollment column)
+             5. summarize: top 10 schools, ZIP counts, city counts, size dist.
+                          │
+                      report.py
+               ┌──────────┴──────────┐
+           charts (.png)        Excel workbook
+           - top 10 schools     - Student Data
+           - school size dist.  - Top 10 Schools
+                                - By ZIP
+                                - By School Size
+                                - Charts
+```
+
 ## Project Structure
 
 ```
