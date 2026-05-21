@@ -1,6 +1,7 @@
 /raw
 .claude/
 CLAUDE.md
+.DS_Store
 student_report/.env
 __pycache__/
 *.pyc
