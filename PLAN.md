@@ -10,8 +10,9 @@
 | Implementation guide in PLAN.md | complete — full code + build sequence added |
 | Workshop template repo (GitHub) | complete — https://github.com/GSU-Analytics/automating-analytics-workshop (private) |
 | Refactor to middle school outreach story | complete (2026-05-21) — `api.py`, `transform.py`, `report.py`, `main.py` rewritten; `generate_survey_csv.py` added |
-| Survey CSV generated and committed | **pending** — run `python student_report/generate_survey_csv.py` on VPN, then commit `student_report/data/survey_middle_schools.csv` |
+| Survey CSV generated and committed | complete (2026-05-21) — 240 rows, 200 matched, 40 null |
 | End-to-end pipeline verified | complete (2026-05-21) — 165 students, 118 school matches, 5-sheet Excel + 2 charts confirmed |
+| Unit tests | complete (2026-05-21) — 12 tests in `student_report/tests/`; `pytest` added to `environment.yml` |
 | Session 1 demo ready | **pending** — pipeline verified; prep demo script/talking points |
 | Participant environment tested (Windows) | not started |
 
