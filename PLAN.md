@@ -1,16 +1,18 @@
 # Automating Data Analytics with Python — Workshop Plan
 
-## Status (updated 2026-05-20)
+## Status (updated 2026-05-21)
 
 | Item | Status |
 |---|---|
 | Session outline (12 sessions) | complete |
 | Oracle EC2 server provisioned | complete — `ec2-54-91-230-172.compute-1.amazonaws.com`, accounts `student02`–`student20` verified |
-| `student_report/` package scaffolded | complete — all 7 files written, `reports/` directory with `.gitkeep` |
+| `student_report/` package scaffolded | complete — `.env`/`python-dotenv` for credentials, `student02` read-only account, `urban-education-data` install fixed |
 | Implementation guide in PLAN.md | complete — full code + build sequence added |
-| End-to-end pipeline verified | **pending** — run `python main.py` on VPN to confirm Oracle connection, API response columns, ZIP join match rate |
+| Workshop template repo (GitHub) | complete — https://github.com/GSU-Analytics/automating-analytics-workshop (private) |
+| Refactor to middle school outreach story | complete (2026-05-21) — `api.py`, `transform.py`, `report.py`, `main.py` rewritten; `generate_survey_csv.py` added |
+| Survey CSV generated and committed | **pending** — run `python student_report/generate_survey_csv.py` on VPN, then commit `student_report/data/survey_middle_schools.csv` |
+| End-to-end pipeline verified | **pending** — run `python student_report/main.py --year 2019 --output student_report/reports/` on VPN after survey CSV is committed |
 | Session 1 demo ready | **pending** — blocked on pipeline verification |
-| Workshop template repo (GitHub) | not started |
 | Participant environment tested (Windows) | not started |
 
 ## Workshop at a Glance
@@ -29,18 +31,18 @@
 
 ## The Scenario Being Automated
 
-> Every month, our office runs an enrollment summary from SQL Developer and downloads New York school district data from the Urban Institute's Education Data Portal. We combine them in Excel, compute aggregates, and paste charts into a report. It takes 2+ hours and introduces errors every time.
+> Every month, our office runs an enrollment summary from SQL Developer, pulls school directory data from the Urban Institute's Education Data Portal for New York and New Jersey, and merges it with survey data on where our students attended middle school — all in Excel. We compute aggregates and paste charts into a report. It takes 2+ hours and introduces errors every time.
 
 We will replace this with a single command:
 
 ```bash
-python main.py --year 2019 --state 36 --output reports/
+python main.py --year 2019 --output reports/
 ```
 
 **Automated outputs:**
-- A merged CSV (Oracle enrollment + Education Data API school data, joined on ZIP code)
-- 2–3 saved charts (enrollment by course, student home-area school demographics)
-- An Excel summary workbook
+- A merged CSV (Oracle students + survey → CCD school profile, one row per student)
+- 2 saved charts (top 10 middle schools by student count, school size distribution)
+- An Excel workbook with 5 sheets for outreach targeting
 
 ---
 
@@ -106,12 +108,12 @@ One file, one job. No classes. Functions only where they reduce repetition.
 - What is an API? What is JSON?
 - `requests.get()`, `.status_code`, `.json()`
 - Explore the `urban-education-data` package (`EducationDataAPI`, GSU-Analytics)
-- Call `api.ccd_directory(2019, fips=36)` — New York school districts; call `.to_df()` on the result
+- Call `api.ccd_directory(2019, fips='36,34')` — NY and NJ middle school directory; call `.to_df()` on the result
 - *ATBS reference*: Chapter 12 (web scraping / HTTP intro)
 
 **Session 7 — Working with API Results**
 - API JSON → `pandas.DataFrame`
-- Exploring, filtering, selecting relevant columns
+- Exploring, filtering, selecting relevant columns (`ncessch`, `school_name`, `zip_mailing`, `enrollment`, etc.)
 - Saving to CSV
 - Brief discussion: what changes if the API is different?
 
@@ -119,15 +121,18 @@ One file, one job. No classes. Functions only where they reduce repetition.
 
 ### Part 3 — Combining and Transforming Data (Sessions 8–9)
 
-**Session 8 — Merging the Two Sources**
-- The join key: student ZIP → school district ZIP
-- `pandas.merge()` — inner, left; inspect unmatched rows
-- Cleaning mismatches (type coercion, leading zeros on ZIP)
+**Session 8 — Merging the Three Sources**
+- The story: admissions wants to target middle schools where current students grew up
+- Introduce `data/survey_middle_schools.csv` — simulated survey data linking student IDs to NCES school IDs
+- Deduplication: `drop_duplicates(subset=['student_id'])` — one row per student before merging
+- Three-way merge: students → survey on `student_id`, then → CCD on `ncessch`
+- Inspect unmatched rows (students with no survey match)
 - Write merged result to CSV
 
 **Session 9 — Aggregations and Summary Statistics**
-- `groupby()` + `agg()` — enrollment counts, averages
-- Add a calculated column (e.g., percent of total)
+- `groupby()` + `agg()` — top schools by student count, ZIP counts
+- `pd.cut()` — bucketing school enrollment into Small / Medium / Large
+- `observed=True` on categorical groupby (pandas ≥2.0)
 - `value_counts()` for quick distributions
 - *ATBS reference*: none directly — refer to pandas docs
 
@@ -644,3 +649,503 @@ Before the Session 1 demo, verify the full pipeline works:
 5. Verify `student_report/reports/` contains: `merged.csv`, `enrollment_by_course.png`, `students_by_school_area.png`, `student_report.xlsx`
 6. Open `student_report.xlsx` and confirm three data sheets + one Charts sheet with both images
 6. If `zip_mailing` key error in `api.py`: run `api.ccd_directory(2019, fips=36).to_df().columns.tolist()` and update `CCD_COLUMNS` accordingly
+
+---
+
+## Refactor Plan: Middle School Outreach Analysis
+
+**Status:** Complete (2026-05-21). All code changes implemented. Remaining step: run `generate_survey_csv.py` on VPN and commit the CSV.
+
+### Background and Motivation
+
+The current pipeline joins Oracle enrollment records (student × course) to the CCD school directory on ZIP code. This produces 1,569 rows for ~165 students because each student is enrolled in multiple courses and each ZIP contains many schools — a many-to-many join explosion. The output is confusing and unmotivated.
+
+This refactor replaces that join with a realistic outreach-targeting story:
+
+> **The admissions team wants to start early outreach programs at junior high schools to build interest in the university before students reach high school. They have survey data on which middle schools current college students attended. They want to identify the top schools by student count, and understand the geographic and size profile of those schools, so they can prioritize outreach visits.**
+
+The new pipeline introduces a **CSV bridge file** (`data/survey_middle_schools.csv`) that links Oracle student IDs to CCD middle school names. This file is described as "collected via student survey" — it's realistic simulated data, appropriate for a beginner workshop.
+
+### New Data Flow
+
+```
+Oracle EC2                    survey CSV                Urban Institute API
+(STUDENT schema)         data/survey_middle_schools.csv  (CCD directory)
+      │                              │                          │
+   db.py                        read_csv()                   api.py
+      │                              │                          │
+  enrollment_df                 survey_df                   school_df
+  (one row per                  student_id                  (NY + NJ,
+  student × course)             middle_school_name          fips='36,34')
+                                ncessch
+      │                              │                          │
+      └──────────── transform.py ────┴──────────────────────────┘
+                          │
+             1. deduplicate enrollment → one row per student
+             2. merge students → survey on student_id
+             3. merge result → CCD on ncessch
+             4. assign school_size bucket (enrollment column)
+             5. summarize: top 10 schools, ZIP counts, city counts, size dist.
+                          │
+                      report.py
+               ┌──────────┴──────────┐
+           charts (.png)        Excel workbook
+           - top 10 schools     - Raw Student Data
+           - school size dist.  - Middle School Summary
+                                - Top 10 Schools
+                                - Size Distribution
+                                - Charts
+```
+
+---
+
+### Step 1 — Generate the Survey CSV (one-time script)
+
+**File to create:** `student_report/generate_survey_csv.py`
+
+This script is run **once** by the workshop author, not by participants. It produces `student_report/data/survey_middle_schools.csv`, which is then committed to the repo as static "survey" data. Participants never run this script — they interact with the CSV as if it were real survey data collected offline.
+
+**What the script does:**
+
+1. Connect to Oracle (using `.env` credentials), query all students in NY or NJ states:
+   ```sql
+   SELECT s.student_id, s.zip AS zip_code, z.city, z.state
+   FROM student s JOIN zipcode z ON s.zip = z.zip
+   WHERE z.state IN ('NY', 'NJ')
+   ```
+   (There is also 1 GA student in the database — exclude them since there are no matching CCD schools nearby.)
+
+2. Normalize Oracle column names with `.columns.str.lower()` (Oracle returns uppercase). Use `s.zip AS zip_code` in the SQL to avoid the `zip` → `zip_code` rename issue that caused a `KeyError` during feasibility testing.
+
+3. Call `EducationDataAPI().ccd_directory(2019, fips='36,34')` — the comma-separated string `'36,34'` fetches both New York (FIPS 36) and New Jersey (FIPS 34) in a single call. This was verified to work during feasibility testing and returns ~3,000+ school records. Call `.to_df()` on the result.
+
+4. Normalize the CCD `zip_mailing` column: `ccd['zip_mailing'] = ccd['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)`. This handles the float→string conversion issue (the API sometimes returns ZIP as a float like `10001.0`).
+
+5. Filter CCD to `school_level in [2, 4]`:
+   - `school_level == 2` = explicitly middle school
+   - `school_level == 4` = charter/other grade span (many NYC charter schools that serve 6–8 fall here)
+   - Do NOT include `school_level == 1` (elementary) or `school_level == 3` (high school)
+
+6. Filter CCD to schools whose `zip_mailing` is in the set of student ZIP codes.
+
+7. Apply the name filter (see **Name Filter Specification** section below) to remove schools whose names clearly indicate they are elementary or high schools even if `school_level` says otherwise.
+
+8. For each student, build the list of plausible schools in their ZIP. Randomly assign one school. Use `random.seed(42)` for reproducibility so the CSV is deterministic.
+
+9. Students with no plausible school in their ZIP (there are ~83 of them across ~45 ZIPs) get an empty `middle_school_name` and empty `ncessch`. These nulls are acceptable — they will show up as `NaN` in the merged DataFrame and be dropped/labeled "Unknown" in the analysis.
+
+10. Write output to `student_report/data/survey_middle_schools.csv`.
+
+**Output CSV columns:**
+| Column | Type | Description |
+|---|---|---|
+| `student_id` | int | Oracle STUDENT.STUDENT_ID (join key to Oracle) |
+| `middle_school_name` | str | CCD school_name (display only) |
+| `ncessch` | str | NCES school ID (join key to CCD — use this, not school_name, to avoid name duplicates) |
+
+**After running this script:** commit `student_report/data/survey_middle_schools.csv` to the repo. Add `student_report/generate_survey_csv.py` to the repo but note in comments that it is a one-time data-generation utility, not part of the workshop pipeline.
+
+**Important:** Create the `student_report/data/` directory and add a `.gitkeep` if it does not already exist.
+
+---
+
+### Name Filter Specification
+
+The feasibility script at `/tmp/check_middle_schools.py` established the initial filter. This refactor **relaxes** it to allow IS ##, MS ##, JHS ##, and MIDDLE-named schools through.
+
+**Keep (do NOT exclude):**
+- `IS \d+` / `I.S. \d+` — Intermediate School (IS 71, IS 218, etc.). In the NYC public school system, "IS" = Intermediate School = grades 6–8. These are genuine junior highs.
+- `MS \d+` / `M.S. \d+` — Middle School. Self-evidently a middle school.
+- `JHS \d+` / `J.H.S. \d+` — Junior High School. Self-evidently a junior high.
+- Any name containing `MIDDLE` (e.g., "YOUNG MIDDLE SCHOOL", "BROOKLYN MIDDLE ACADEMY") — the word "middle" is a strong positive signal.
+- Ambiguous names like "YOUNG WOMENS LEADERSHIP SCHOOL - ASTORIA" — these pass through because they don't match any exclusion pattern. This is intentional and acceptable for a simulated dataset.
+
+**Exclude (these clearly indicate NOT a middle school):**
+- `^PS \d+`, `^P\.S\. \d+`, `^P\.S\.\d+` — Public School numbered (PS 122, PS 6) — almost always elementary
+- `^HS \d+`, `^H\.S\. \d+` — High School numbered
+- `ELEMENTARY` anywhere in the name
+- `EARLY CHILDHOOD` anywhere in the name
+- `PRIMARY` anywhere in the name
+- `\bHIGH SCHOOL\b` anywhere in the name
+- `HIGH SCH\b` anywhere in the name
+- `\bHS\b` as a standalone word (avoid false positives: "NHS", "PHYSICS" — use word boundary `\b`)
+
+**Updated Python filter function:**
+```python
+import re
+
+def is_plausible_middle_school(name):
+    name_upper = str(name).upper()
+    bad_patterns = [
+        r'^PS \d+', r'^P\.S\. \d+', r'^P\.S\.\d+',   # elementary numbered
+        r'^HS \d+', r'^H\.S\. \d+',                    # high school numbered
+        r'ELEMENTARY',
+        r'EARLY CHILDHOOD',
+        r'PRIMARY',
+        r'\bHIGH SCHOOL\b',
+        r'HIGH SCH\b',
+        r'\bHS\b',
+    ]
+    for pat in bad_patterns:
+        if re.search(pat, name_upper):
+            return False
+    return True
+```
+
+Note: `IS ##`, `MS ##`, `JHS ##`, and `MIDDLE` are now ALLOWED (their exclusion patterns have been removed from the previous version).
+
+---
+
+### Step 2 — `api.py` Changes
+
+**Goal:** Pull CCD data for both NY and NJ, and expand the columns returned to include school profile fields needed for the analysis.
+
+**Change 1 — Remove `state_fips` parameter, hardcode NY+NJ:**
+```python
+# OLD
+def get_school_data(year, state_fips):
+    api = EducationDataAPI()
+    result = api.ccd_directory(year, fips=state_fips)
+
+# NEW
+def get_school_data(year):
+    api = EducationDataAPI()
+    result = api.ccd_directory(year, fips='36,34')
+```
+
+The `fips='36,34'` string is confirmed to work. Do not use a list — `fips=[36, 34]` returns HTTP 400. The comma-separated string is the correct form.
+
+**Change 2 — Expand `CCD_COLUMNS`:**
+```python
+CCD_COLUMNS = [
+    'ncessch',            # NCES school ID — primary join key to survey CSV
+    'school_name',        # display name
+    'zip_mailing',        # ZIP code — used for ZIP/city analysis
+    'city_location',      # city name — used for city analysis
+    'state_location',     # state abbreviation
+    'school_level',       # 1=elem, 2=middle, 3=high, 4=other — for reference
+    'enrollment',         # total school enrollment — used for size bucketing
+    'lowest_grade_offered',   # for display/verification
+    'highest_grade_offered',  # for display/verification
+]
+```
+
+**Verify these column names exist** by running `api.ccd_directory(2019, fips='36,34').to_df().columns.tolist()` on a live response before finalizing. The column names have been stable across CCD API versions but should be confirmed.
+
+---
+
+### Step 3 — `db.py` Changes (minimal)
+
+**Keep the existing `ENROLLMENT_QUERY` and `get_enrollment()` function unchanged.** The multi-table Oracle join (student → zipcode → enrollment → section → course) is the core SQL teaching example for Sessions 4–5 and should not be removed.
+
+The query returns one row per student × course combination (a student enrolled in 2 courses = 2 rows). This is expected and intentional — the deduplication to one row per student now happens in `transform.py` as a deliberate step, which becomes its own teaching moment.
+
+**No changes needed to `db.py`.**
+
+---
+
+### Step 4 — `transform.py` Rewrite
+
+This file changes the most. The old functions (`merge_data`, `summarize_by_course`, `summarize_by_school`) are replaced with new ones that reflect the outreach story.
+
+**New function: `get_students(enrollment_df)`**
+
+Deduplicate the enrollment DataFrame to one row per student, keeping only the student-level columns (not course data):
+
+```python
+def get_students(enrollment_df):
+    return (
+        enrollment_df[['student_id', 'first_name', 'last_name', 'zip', 'city', 'state']]
+        .drop_duplicates(subset=['student_id'])
+        .copy()
+    )
+```
+
+**Important:** Use `drop_duplicates(subset=['student_id'])` not just `.drop_duplicates()`. The enrollment query joins to multiple courses, so the same student appears multiple times with different course/grade values — we want exactly one row per student_id.
+
+**New function: `merge_data(students_df, survey_df, school_df)`**
+
+Three-way merge: students → survey → CCD.
+
+```python
+def merge_data(students_df, survey_df, school_df):
+    students_df = students_df.copy()
+    survey_df = survey_df.copy()
+    school_df = school_df.copy()
+
+    # Normalize ZIP
+    students_df['zip'] = students_df['zip'].astype(str).str.zfill(5)
+    school_df['zip_mailing'] = (
+        school_df['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)
+    )
+    # Normalize ncessch to string (API may return it as int or float)
+    survey_df['ncessch'] = survey_df['ncessch'].astype(str).str.split('.').str[0]
+    school_df['ncessch'] = school_df['ncessch'].astype(str).str.split('.').str[0]
+
+    # Step 1: students → survey (left join — keeps students with no survey match)
+    merged = students_df.merge(survey_df, on='student_id', how='left')
+
+    # Step 2: merged → school profile (left join — keeps students with no school match)
+    merged = merged.merge(school_df, on='ncessch', how='left')
+
+    # Step 3: add school_size bucket
+    merged['school_size'] = pd.cut(
+        merged['enrollment'],
+        bins=[0, 300, 700, float('inf')],
+        labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
+    )
+
+    return merged
+```
+
+**Why normalize ncessch:** The CCD API sometimes returns `ncessch` as a float (e.g., `360007702472.0`). The survey CSV stores it as generated by the script, which may also have the float issue. Both sides must be normalized to plain integer-string before the join or the merge will silently fail (0 matches).
+
+**New function: `summarize_top_schools(merged_df)`**
+
+```python
+def summarize_top_schools(merged_df):
+    matched = merged_df.dropna(subset=['middle_school_name'])
+    return (
+        matched.groupby(['middle_school_name', 'city_location', 'zip_mailing', 'school_size'])
+        .agg(student_count=('student_id', 'count'), school_enrollment=('enrollment', 'first'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+        .head(10)
+    )
+```
+
+**New function: `summarize_by_zip(merged_df)`**
+
+```python
+def summarize_by_zip(merged_df):
+    matched = merged_df.dropna(subset=['zip_mailing'])
+    return (
+        matched.groupby(['zip_mailing', 'city_location'])
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+    )
+```
+
+**New function: `summarize_by_size(merged_df)`**
+
+```python
+def summarize_by_size(merged_df):
+    return (
+        merged_df.groupby('school_size', observed=True)
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+    )
+```
+
+Note: `observed=True` is required in pandas ≥2.0 when grouping by a `Categorical` (which `pd.cut` produces). Without it, pandas emits a FutureWarning.
+
+**School size bucket thresholds:**
+| Bucket | Enrollment range | Rationale |
+|---|---|---|
+| Small | < 300 | Smaller community schools, neighborhood-level reach |
+| Medium | 300–700 | Typical NYC neighborhood middle school |
+| Large | > 700 | Large consolidated or magnet schools |
+
+---
+
+### Step 5 — `report.py` Rewrite
+
+Replace the two old charts and old Excel structure with outreach-focused output.
+
+**New function: `save_top_schools_chart(top_schools_df, output_dir)`**
+
+Horizontal bar chart, top 10 schools by student count. Use school name on Y axis.
+
+```python
+def save_top_schools_chart(top_schools_df, output_dir):
+    path = Path(output_dir) / "top_middle_schools.png"
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(top_schools_df['middle_school_name'], top_schools_df['student_count'], color='steelblue')
+    ax.set_xlabel("Number of Students")
+    ax.set_title("Top 10 Middle Schools by Student Count")
+    ax.invert_yaxis()   # largest bar at top
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+```
+
+**New function: `save_size_chart(size_df, output_dir)`**
+
+Pie or bar chart showing distribution of students across school size buckets. Bar is simpler and more beginner-friendly:
+
+```python
+def save_size_chart(size_df, output_dir):
+    path = Path(output_dir) / "school_size_distribution.png"
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.bar(size_df['school_size'].astype(str), size_df['student_count'], color='teal')
+    ax.set_xlabel("School Size")
+    ax.set_ylabel("Number of Students")
+    ax.set_title("Students by Middle School Size")
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+```
+
+**Updated function: `save_excel_report(...)`**
+
+Excel workbook with 5 sheets:
+1. **Student Data** — the merged DataFrame (one row per student), all columns
+2. **Top 10 Schools** — `top_schools_df`
+3. **By ZIP** — `zip_summary_df`
+4. **By School Size** — `size_df`
+5. **Charts** — embed both chart images
+
+```python
+def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_paths, output_dir):
+    from openpyxl import load_workbook
+    from openpyxl.drawing.image import Image as XLImage
+
+    path = Path(output_dir) / "student_report.xlsx"
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        merged_df.to_excel(writer, sheet_name='Student Data', index=False)
+        top_schools_df.to_excel(writer, sheet_name='Top 10 Schools', index=False)
+        zip_summary_df.to_excel(writer, sheet_name='By ZIP', index=False)
+        size_df.to_excel(writer, sheet_name='By School Size', index=False)
+
+    wb = load_workbook(path)
+    ws = wb.create_sheet('Charts')
+    row = 1
+    for chart_path in chart_paths:
+        img = XLImage(str(chart_path))
+        ws.add_image(img, f'A{row}')
+        row += 30
+    wb.save(path)
+    return path
+```
+
+---
+
+### Step 6 — `main.py` Changes
+
+**Remove the `--state` argument.** The API now always fetches NY+NJ via `fips='36,34'` hardcoded in `api.py`. Keeping `--state` would be misleading since passing `--state 13` (Georgia) would be ignored. Remove it cleanly.
+
+**Add CSV loading step** between the Oracle fetch and the API fetch:
+
+```python
+import argparse
+from pathlib import Path
+import pandas as pd
+from db import get_enrollment
+from api import get_school_data
+from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
+from report import save_top_schools_chart, save_size_chart, save_excel_report
+
+
+def main(args):
+    output = Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
+
+    print("Fetching enrollment data from Oracle...")
+    enrollment_df = get_enrollment()
+    students_df = get_students(enrollment_df)
+    print(f"  {len(students_df)} students")
+
+    print("Loading middle school survey data...")
+    survey_path = Path(__file__).parent / "data" / "survey_middle_schools.csv"
+    survey_df = pd.read_csv(survey_path, dtype={'student_id': int, 'ncessch': str})
+    print(f"  {len(survey_df)} survey records")
+
+    print(f"Fetching school data from API (year={args.year}, fips='36,34')...")
+    school_df = get_school_data(args.year)
+    print(f"  {len(school_df)} school records")
+
+    print("Merging and summarizing...")
+    merged_df = merge_data(students_df, survey_df, school_df)
+    top_schools = summarize_top_schools(merged_df)
+    zip_summary = summarize_by_zip(merged_df)
+    size_summary = summarize_by_size(merged_df)
+
+    merged_csv = output / "merged.csv"
+    merged_df.to_csv(merged_csv, index=False)
+    print(f"  Saved {merged_csv}")
+
+    print("Generating charts...")
+    chart1 = save_top_schools_chart(top_schools, output)
+    chart2 = save_size_chart(size_summary, output)
+
+    print("Generating Excel report...")
+    excel_path = save_excel_report(
+        merged_df, top_schools, zip_summary, size_summary,
+        [chart1, chart2], output,
+    )
+
+    print(f"\nDone. Outputs in {output}/")
+    print(f"  {merged_csv.name}")
+    print(f"  {chart1.name}")
+    print(f"  {chart2.name}")
+    print(f"  {excel_path.name}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate middle school outreach report."
+    )
+    parser.add_argument('--year', type=int, default=2019, help='CCD data year (default: 2019)')
+    parser.add_argument('--output', type=str, default='reports/', help='Output directory (default: reports/)')
+    args = parser.parse_args()
+    main(args)
+```
+
+**Important:** Load `survey_df` with `dtype={'student_id': int, 'ncessch': str}`. Without the dtype spec, pandas may read `ncessch` as a float and `student_id` inconsistently, causing silent join failures.
+
+---
+
+### Step 7 — Run `generate_survey_csv.py` and Commit the CSV
+
+After all code changes are in place:
+
+1. Connect to VPN
+2. `conda activate student-report`
+3. `python student_report/generate_survey_csv.py`
+4. Inspect `student_report/data/survey_middle_schools.csv` — verify it has ~240 rows, `student_id` is integer, `ncessch` is a string like `360007702472`, roughly 65% of rows have a non-null `middle_school_name`
+5. Commit the CSV as `data/survey_middle_schools.csv`
+
+---
+
+### Expected Output After Refactor
+
+**`reports/merged.csv`:** ~240 rows (one per NY+NJ student). Columns include student_id, name, zip, city, state, middle_school_name, ncessch, city_location, zip_mailing, state_location, school_level, enrollment, school_size, lowest_grade_offered, highest_grade_offered. ~157 rows will have a non-null school; ~83 will be null.
+
+**`reports/top_middle_schools.png`:** Horizontal bar chart, top 10 middle schools by student count.
+
+**`reports/school_size_distribution.png`:** Bar chart, students by school size bucket.
+
+**`reports/student_report.xlsx`:** 5 sheets — Student Data, Top 10 Schools, By ZIP, By School Size, Charts.
+
+**Run command after refactor:**
+```bash
+python student_report/main.py --year 2019 --output student_report/reports/
+```
+(Note: `--state` argument has been removed.)
+
+---
+
+### Pitfalls to Avoid
+
+1. **`ncessch` type mismatch** — The CCD API returns `ncessch` as a float-encoded integer (e.g., `360007702472.0`). The survey CSV generation script may or may not cast it. Both sides of the merge must be normalized to a clean string (e.g., `'360007702472'`) using `.astype(str).str.split('.').str[0]`. If the join produces 0 matches, this is almost certainly why.
+
+2. **Oracle uppercase columns** — `pd.read_sql()` returns column names in uppercase (`STUDENT_ID`, `ZIP`, etc.). Always call `.columns.str.lower()` immediately after `pd.read_sql()`. The `db.py` function already does this — do not remove it.
+
+3. **`zip_mailing` as float** — Same issue as `ncessch`. The CCD API returns ZIPs as floats (`10001.0`). Use `.astype(str).str.split('.').str[0].str.zfill(5)`. This normalization must happen in both `generate_survey_csv.py` AND `transform.py`.
+
+4. **`fips` must be a string** — `api.ccd_directory(2019, fips='36,34')` works. `fips=[36, 34]` (a Python list) returns HTTP 400. `fips=36` (integer for just NY) also works. Only the comma-separated multi-state form requires the string type.
+
+5. **`pd.cut` with `observed=True`** — When using `groupby` on a `Categorical` column (output of `pd.cut`), always pass `observed=True` to avoid FutureWarning and suppress empty-category rows in the output.
+
+6. **`drop_duplicates` before survey merge** — The Oracle enrollment query returns one row per student × course. Merging 5 course rows per student × 1 survey row = 5 output rows per student (still an explosion, just smaller). Use `drop_duplicates(subset=['student_id'])` in `get_students()` before any merge.
+
+7. **`generate_survey_csv.py` requires VPN** — The script connects to both Oracle (VPN-gated) and the Education Data API (public). It must be run on the GSU VPN. Once the CSV is committed, the main pipeline only uses the committed file and does not re-call `generate_survey_csv.py`.
+
+8. **Do not change `db.py`** — The multi-table enrollment query is a teaching asset for Sessions 4–5. The deduplication in `get_students()` in `transform.py` is intentional and becomes a teaching moment ("a student can take many courses — we deduplicate before merging with survey data").
+
+9. **Update the session outline** — Sessions 6–9 reference the old ZIP-join story and "school district" framing. Update the scenario description in those sessions to reference the survey CSV and middle school outreach story. The code steps remain the same; only the narrative changes.
+
+10. **Update the scenario paragraph at the top of PLAN.md** — The current scenario says "download New York school district data." After the refactor it should say something like: "pull school directory data for NY and NJ, merge it with a survey of where our students went to middle school, and produce an outreach targeting report."
