@@ -11,8 +11,8 @@
 | Workshop template repo (GitHub) | complete — https://github.com/GSU-Analytics/automating-analytics-workshop (private) |
 | Refactor to middle school outreach story | complete (2026-05-21) — `api.py`, `transform.py`, `report.py`, `main.py` rewritten; `generate_survey_csv.py` added |
 | Survey CSV generated and committed | **pending** — run `python student_report/generate_survey_csv.py` on VPN, then commit `student_report/data/survey_middle_schools.csv` |
-| End-to-end pipeline verified | **pending** — run `python student_report/main.py --year 2019 --output student_report/reports/` on VPN after survey CSV is committed |
-| Session 1 demo ready | **pending** — blocked on pipeline verification |
+| End-to-end pipeline verified | complete (2026-05-21) — 165 students, 118 school matches, 5-sheet Excel + 2 charts confirmed |
+| Session 1 demo ready | **pending** — pipeline verified; prep demo script/talking points |
 | Participant environment tested (Windows) | not started |
 
 ## Workshop at a Glance
