@@ -13,7 +13,7 @@ conda activate student-report
 
 # 2. add your database credentials (one time only)
 cp .env.example .env
-# open .env and fill in DB_USER and DB_PASSWORD
+# open .env and fill in ORACLE_USER and ORACLE_PASSWORD
 
 # 3. run the pipeline
 python main.py --year 2019 --output reports/

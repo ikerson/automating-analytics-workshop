@@ -1,14 +1,10 @@
-import os
+# db.py
+
 from pathlib import Path
-import oracledb
-import pandas as pd
 from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
 load_dotenv(Path(__file__).parent / ".env")
-
-_USER = os.getenv("DB_USER")
-_PASSWORD = os.getenv("DB_PASSWORD")
-_DSN = os.getenv("DB_DSN")
 
 ENROLLMENT_QUERY = """
     SELECT
@@ -31,7 +27,7 @@ ENROLLMENT_QUERY = """
 
 
 def get_enrollment():
-    with oracledb.connect(user=_USER, password=_PASSWORD, dsn=_DSN) as conn:
-        df = pd.read_sql(ENROLLMENT_QUERY, conn)
+    conn = LightOracleConnection()
+    df = conn.execute_query(ENROLLMENT_QUERY)
     df.columns = df.columns.str.lower()
     return df
