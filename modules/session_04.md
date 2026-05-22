@@ -70,7 +70,6 @@ The repo already has `student_report/.env.example` — a committed template that
 ORACLE_USER=student02
 ORACLE_PASSWORD=your_password_here
 ORACLE_DSN=ec2-54-91-230-172.compute-1.amazonaws.com:1521/XEPDB1
-ORACLE_LIB_DIR=
 ```
 
 Copy it to create your local credentials file:
