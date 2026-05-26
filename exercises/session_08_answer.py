@@ -12,7 +12,7 @@ contacts = pd.read_csv(DATA_DIR / 'outreach_contacts.csv')
 survey = pd.read_csv(DATA_DIR / 'school_survey_2019.csv')
 schools = pd.read_csv(DATA_DIR / 'middle_schools_2019.csv')
 
-merged = contacts.merge(survey, on='student_id', how='left')
+merged = contacts.merge(survey[['student_id', 'ncessch']], on='student_id', how='left')
 
 merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
 schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]

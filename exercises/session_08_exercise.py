@@ -4,7 +4,7 @@
 #   1. Load exercises/data/outreach_contacts.csv
 #   2. Load exercises/data/school_survey_2019.csv
 #   3. Load exercises/data/middle_schools_2019.csv
-#   4. Merge contacts with survey on student_id (left join)
+#   4. Merge contacts with survey on student_id (left join) — only keep student_id and ncessch from survey
 #   5. Normalize ncessch to a clean string in both DataFrames
 #   6. Merge result with middle_schools on ncessch (left join)
 #   7. Print how many contacts have no school match (school_name is NaN)
@@ -24,8 +24,8 @@ contacts = pd.read_csv(DATA_DIR / "___")
 survey = pd.read_csv(DATA_DIR / "___")
 schools = pd.read_csv(DATA_DIR / "___")
 
-# TODO: Merge contacts with survey — fill in the join key and join type
-merged = contacts.merge(survey, on="___", how="___")
+# TODO: Merge contacts with survey — we only need student_id and ncessch from survey
+merged = contacts.merge(survey[['student_id', 'ncessch']], on="___", how="___")
 
 # 5. Normalize ncessch — stored as a float, strip the decimal
 merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
