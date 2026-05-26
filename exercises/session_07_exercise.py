@@ -17,32 +17,21 @@ from educationdata import EducationDataAPI
 
 COLUMNS = ['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']
 
-# TODO: Create an EducationDataAPI instance
-# Hint: api = EducationDataAPI()
+# TODO: Call ccd_directory for 2019 — note: fips must be a string, not a list
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips="___")
 
+# 2. Convert to a DataFrame
+df = result.to_df()
 
-# TODO: Call ccd_directory for 2019 with fips='36,34'
-# Hint: result = api.ccd_directory(2019, fips='36,34')
-
-
-# TODO: Convert to a DataFrame
-# Hint: df = result.to_df()
-
-
-# TODO: Select the COLUMNS subset
-# Hint: df = df[COLUMNS].copy()
-
+# 3. Select the column subset defined above
+df = df[COLUMNS].copy()
 
 # TODO: Filter to middle schools (school_level == 2)
-# Hint: df = df[df['school_level'] == 2]
+df = df[df["school_level"] == ___]
 
+print(f"Middle schools: {len(df)}")
 
-# TODO: Print how many middle schools remain
-# Hint: print(f"Middle schools: {len(df)}")
-
-
-# TODO: Save to exercises/data/middle_schools_2019.csv (index=False)
-# Hint: df.to_csv(Path('exercises') / 'data' / 'middle_schools_2019.csv', index=False)
-
-
+# TODO: Save to exercises/data/middle_schools_2019.csv — no row index
+df.to_csv(Path("exercises") / "data" / "___", index=False)
 print("Done.")

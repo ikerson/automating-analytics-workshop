@@ -20,41 +20,33 @@ import matplotlib.pyplot as plt
 DATA_DIR = Path('exercises') / 'data'
 
 # TODO: Load merged_contacts.csv
-# Hint: merged = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
+merged = pd.read_csv(DATA_DIR / "___")
 
+# TODO: Drop rows with no school match, then build the top-5 count
+matched = merged.dropna(subset=["___"])
+top5 = (
+    matched.groupby("___")
+    .agg(student_count=("___", "count"))
+    .reset_index()
+    .sort_values("___", ascending=False)
+    .head(5)
+)
 
-# TODO: Drop rows with no school match and count students per school (top 5)
-# Hint: matched = merged.dropna(subset=['school_name'])
-# Hint: top5 = (
-#     matched.groupby('school_name')
-#     .agg(student_count=('student_id', 'count'))
-#     .reset_index()
-#     .sort_values('student_count', ascending=False)
-#     .head(5)
-# )
+# 4. Build the chart
+fig, ax = plt.subplots(figsize=(9, 5))
 
+# TODO: Plot a horizontal bar chart — fill in the x and y columns
+ax.barh(top5["___"], top5["___"], color='steelblue')
 
-# TODO: Create the figure and axes
-# Hint: fig, ax = plt.subplots(figsize=(9, 5))
+# TODO: Fill in the x-axis label and chart title from the task description
+ax.set_xlabel("___")
+ax.set_title("___")
 
+# 6. Highest bar at the top
+ax.invert_yaxis()
 
-# TODO: Plot a horizontal bar chart (barh)
-# Hint: ax.barh(top5['school_name'], top5['student_count'], color='steelblue')
-
-
-# TODO: Label the x-axis and add a title
-# Hint: ax.set_xlabel("Number of Contacts")
-# Hint: ax.set_title("Top 5 Middle Schools by Contacts")
-
-
-# TODO: Invert the y-axis so the largest bar is at the top
-# Hint: ax.invert_yaxis()
-
-
-# TODO: Call plt.tight_layout(), save to top_schools_chart.png, then call plt.close()
-# Hint: plt.tight_layout()
-# Hint: plt.savefig(DATA_DIR / 'top_schools_chart.png')
-# Hint: plt.close()
-
-
+# TODO: Save the chart and close
+plt.tight_layout()
+plt.savefig(DATA_DIR / "___")
+plt.close()
 print("Done.")

@@ -13,27 +13,24 @@
 
 from educationdata import EducationDataAPI
 
-# TODO: Create an EducationDataAPI instance
-# Hint: api = EducationDataAPI()
+# 1. Create an API instance
+api = EducationDataAPI()
 
+# TODO: Call ccd_directory for 2018 — note: fips must be a string, not a list
+result = api.ccd_directory(2018, fips="___")
 
-# TODO: Call ccd_directory for 2018 with fips='36,34'
-# Note: fips must be a string — fips=[36, 34] returns HTTP 400
-# Hint: result = api.ccd_directory(2018, fips='36,34')
-
-
-# TODO: Print result.count
-
+# 3. How many schools are returned?
+print(result.count)
 
 # TODO: Convert to a DataFrame
-# Hint: df = result.to_df()
+df = ___.to_df()
 
-
-# TODO: Print .head() and .info()
-
+# 5. Inspect the results
+df.___()
+print()
+df.info()
+print()
 
 # TODO: Print the list of column names
-# Hint: print(df.columns.tolist())
-
-
+print(df.columns.tolist())
 print("Done.")

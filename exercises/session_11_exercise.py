@@ -11,24 +11,24 @@
 # Run from the repo root:
 #   python exercises/session_11_exercise.py
 
+___ = None  # replace each ___ with the correct value
+
 from pathlib import Path
 import pandas as pd
 
 DATA_DIR = Path('exercises') / 'data'
 
 # TODO: Load merged_contacts.csv
-# Hint: contacts = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
-
+contacts = pd.read_csv(DATA_DIR / "___")
 
 # TODO: Load size_summary.csv
-# Hint: size_summary = pd.read_csv(DATA_DIR / 'size_summary.csv')
+size_summary = pd.read_csv(DATA_DIR / "___")
 
-
-# TODO: Write both DataFrames to contacts_report.xlsx using pd.ExcelWriter
-# Use engine='openpyxl' and index=False on both sheets
-# Hint: with pd.ExcelWriter(DATA_DIR / 'contacts_report.xlsx', engine='openpyxl') as writer:
-#     contacts.to_excel(writer, sheet_name='Contacts', index=False)
-#     size_summary.to_excel(writer, sheet_name='By School Size', index=False)
-
+# TODO: Fill in the output filename and engine
+with pd.ExcelWriter(DATA_DIR / "___", engine="___") as writer:
+    # TODO: Fill in the sheet name for the contacts data
+    contacts.to_excel(writer, sheet_name="___", index=False)
+    # TODO: Fill in which DataFrame goes on the "By School Size" sheet
+    ___.to_excel(writer, sheet_name='By School Size', index=False)
 
 print("Saved contacts_report.xlsx")

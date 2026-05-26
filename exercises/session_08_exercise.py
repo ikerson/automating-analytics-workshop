@@ -19,43 +19,26 @@ import pandas as pd
 
 DATA_DIR = Path('exercises') / 'data'
 
-# TODO: Load outreach_contacts.csv
-# Hint: contacts = pd.read_csv(DATA_DIR / 'outreach_contacts.csv')
+# TODO: Load the three CSV files
+contacts = pd.read_csv(DATA_DIR / "___")
+survey = pd.read_csv(DATA_DIR / "___")
+schools = pd.read_csv(DATA_DIR / "___")
 
+# TODO: Merge contacts with survey — fill in the join key and join type
+merged = contacts.merge(survey, on="___", how="___")
 
-# TODO: Load school_survey_2019.csv
-# Hint: survey = pd.read_csv(DATA_DIR / 'school_survey_2019.csv')
+# 5. Normalize ncessch — stored as a float, strip the decimal
+merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
+schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]
 
+# TODO: Merge result with schools — fill in the join key and join type
+merged = merged.merge(schools, on="___", how="___")
 
-# TODO: Load middle_schools_2019.csv
-# Hint: schools = pd.read_csv(DATA_DIR / 'middle_schools_2019.csv')
+# TODO: Find contacts with no school match and print them
+unmatched = merged[merged["___"].isna()]
+print(f"Contacts without a school match: {len(unmatched)}")
+print(unmatched[['student_id', 'first_name', 'last_name']])
 
-
-# TODO: Merge contacts with survey on student_id (left join)
-# Hint: merged = contacts.merge(survey, on='student_id', how='left')
-
-
-# TODO: Normalize ncessch to a clean string in both DataFrames
-# ncessch may be stored as a float (e.g. 340183001982.0) — strip the decimal
-# Hint: merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
-# Hint: schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]
-
-
-# TODO: Merge result with schools on ncessch (left join)
-# Hint: merged = merged.merge(schools, on='ncessch', how='left')
-
-
-# TODO: Print how many contacts have no school match (school_name is NaN)
-# Hint: unmatched = merged[merged['school_name'].isna()]
-# Hint: print(f"Contacts without a school match: {len(unmatched)}")
-
-
-# TODO: Print student_id, first_name, and last_name of unmatched contacts
-# Hint: print(unmatched[['student_id', 'first_name', 'last_name']])
-
-
-# TODO: Save to exercises/data/merged_contacts.csv (index=False)
-# Hint: merged.to_csv(DATA_DIR / 'merged_contacts.csv', index=False)
-
-
+# TODO: Save the merged result — no row index
+merged.to_csv(DATA_DIR / "___", index=False)
 print("Done.")

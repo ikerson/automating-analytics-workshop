@@ -18,34 +18,27 @@ import pandas as pd
 DATA_DIR = Path('exercises') / 'data'
 
 # TODO: Load merged_contacts.csv
-# Hint: merged = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
+merged = pd.read_csv(DATA_DIR / "___")
 
+# TODO: Create a school_size column — fill in the column name and the three labels
+merged['school_size'] = pd.cut(
+    merged["___"],
+    bins=[0, 300, 700, float('inf')],
+    labels=["___", "___", "___"],
+)
 
-# TODO: Create a school_size column using pd.cut() on the enrollment column
-# Hint: merged['school_size'] = pd.cut(
-#     merged['enrollment'],
-#     bins=[0, 300, 700, float('inf')],
-#     labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
-# )
+# TODO: Print value_counts() on the city column
+print(merged["___"].value_counts())
 
+# TODO: Fill in the groupby column and the two aggregation columns
+size_summary = (
+    merged.dropna(subset=['school_size'])
+    .groupby("___", observed=True)
+    .agg(student_count=("___", "count"), avg_enrollment=("___", "mean"))
+    .reset_index()
+)
+print(size_summary)
 
-# TODO: Print value_counts() on city_location
-# Hint: print(merged['city_location'].value_counts())
-
-
-# TODO: groupby school_size, aggregate student count and average enrollment
-# Use observed=True to include only categories that appear in the data
-# Hint: size_summary = (
-#     merged.dropna(subset=['school_size'])
-#     .groupby('school_size', observed=True)
-#     .agg(student_count=('student_id', 'count'), avg_enrollment=('enrollment', 'mean'))
-#     .reset_index()
-# )
-# Hint: print(size_summary)
-
-
-# TODO: Save size_summary to exercises/data/size_summary.csv (index=False)
-# Hint: size_summary.to_csv(DATA_DIR / 'size_summary.csv', index=False)
-
-
+# TODO: Save the size summary — no row index
+size_summary.to_csv(DATA_DIR / "___", index=False)
 print("Done.")

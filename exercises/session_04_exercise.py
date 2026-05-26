@@ -15,19 +15,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 from lightoracle import LightOracleConnection
 
-# TODO: Load student_report/.env
-# Hint: load_dotenv(Path('student_report') / '.env')
+# TODO: Load credentials from the .env file
+load_dotenv(Path("___") / "___")
 
-
-# TODO: Create a LightOracleConnection
-# Hint: conn = LightOracleConnection()
-
+# 2. Connect to Oracle
+conn = LightOracleConnection()
 
 # TODO: Query the first 10 rows of the zipcode table
-# Hint: conn.execute_query("SELECT * FROM zipcode FETCH FIRST 10 ROWS ONLY")
+df = conn.execute_query("___")
 
-
-# TODO: Print the result
-
-
+# 4. Print the result
+print(df)
 print("Done.")

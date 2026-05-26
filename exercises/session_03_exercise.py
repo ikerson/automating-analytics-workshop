@@ -13,30 +13,22 @@
 
 import pandas as pd
 
-# TODO: Load outreach_contacts.csv using pd.read_csv()
-# Hint: path is exercises/data/outreach_contacts.csv
+# TODO: Load the CSV file
+df = pd.read_csv("___")
 
+# 2. Inspect the data
+print(df.head())
+print(df.info())
 
-# TODO: Print the first 5 rows with .head()
-
-
-# TODO: Print a column summary with .info()
-
-
-# TODO: Select only these columns: student_id, first_name, last_name, phone, zip_code
-# Hint: df[['col1', 'col2', ...]]
-
+# TODO: Select only the five columns listed in the task
+df = df[["___", "___", "___", "___", "___"]]
 
 # TODO: Drop rows where phone is missing
-# Hint: df.dropna(subset=['phone'])
+df = df.dropna(subset=["___"])
 
+print(f"{len(df)} rows remaining after dropping missing phone numbers.")
 
-# TODO: Print how many rows remain
-# Hint: len(df)
-
-
-# TODO: Save the result to exercises/data/outreach_contacts_cleaned.csv
-# Hint: df.to_csv('path/to/file.csv', index=False)
-
+# TODO: Save the result — no row index
+df.to_csv("___", index=False)
 
 print("Done.")
