@@ -211,12 +211,6 @@ Run from the repo root:
 python exercises/session_10_exercise.py
 ```
 
-### Answer
-
-The complete working solution is at the bottom of `exercises/session_10_exercise.py`, commented out. Uncomment it to check your work.
-
----
-
 ## Additional Resources
 
 - [matplotlib — Horizontal bar chart (barh)](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.barh.html)

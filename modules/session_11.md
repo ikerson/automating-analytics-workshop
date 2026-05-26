@@ -253,12 +253,6 @@ Run from the repo root:
 python exercises/session_11_exercise.py
 ```
 
-### Answer
-
-The complete working solution is at the bottom of `exercises/session_11_exercise.py`, commented out. Uncomment it to check your work.
-
----
-
 ## Additional Resources
 
 - [pandas — ExcelWriter](https://pandas.pydata.org/docs/reference/api/pandas.ExcelWriter.html)

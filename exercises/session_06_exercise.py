@@ -37,21 +37,3 @@ from educationdata import EducationDataAPI
 
 
 print("Done.")
-
-
-# ---------------------------------------------------------------------------
-# Answer — uncomment to check your work
-# ---------------------------------------------------------------------------
-
-# from educationdata import EducationDataAPI
-#
-# api = EducationDataAPI()
-# result = api.ccd_directory(2018, fips='36,34')
-# print(result.count)
-# df = result.to_df()
-# print(df.head())
-# print()
-# df.info()
-# print()
-# print(df.columns.tolist())
-# print("Done.")

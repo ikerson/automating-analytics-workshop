@@ -279,12 +279,6 @@ Run from the repo root:
 python exercises/session_08_exercise.py
 ```
 
-### Answer
-
-The complete working solution is at the bottom of `exercises/session_08_exercise.py`, commented out. Uncomment it to check your work.
-
----
-
 ## Additional Resources
 
 - [pandas — DataFrame.merge](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html)
