@@ -27,7 +27,7 @@ python main.py --year 2019 --output reports/
    Connect to the Oracle training server with `oracledb`. Store credentials in a `.env` file. Run a SELECT query and see the results.
 
 5. [Session 5 — Working with Database Results](modules/session_05.md)  
-   Upgrade to `pd.read_sql()`. Normalize column names and save enrollment data to CSV.
+   Build the full five-table enrollment query in `get_enrollment()`. Normalize column names and save enrollment data to CSV.
 
 6. [Session 6 — Calling a Web API](modules/session_06.md)  
    Introduction to APIs and JSON. Call the Urban Institute Education Data Portal to fetch NY and NJ middle school directory data.
