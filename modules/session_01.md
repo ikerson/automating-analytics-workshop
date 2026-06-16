@@ -10,6 +10,46 @@ This first session is an orientation. You will see the finished tool run live, u
 
 ---
 
+## Teaching Approach
+
+### Honest Expectations
+
+This workshop is designed for people with no previous Python or coding experience — you do not need any prior background to participate. That said, beginner-friendly does not mean easy.
+
+We are building a real-world automated data pipeline. That is a complex process with many moving parts: a database, a web API, data transformation logic, charts, and an Excel report — all wired together and run from a single command. You will encounter concepts that take time to absorb, and some things will not click on the first pass. That is expected and completely normal.
+
+The learning curve is steep. The payoff is high.
+
+### How This Workshop Teaches
+
+Sessions follow a code-along format: the instructor writes code, you follow on your own machine. Each session adds one file or one function to the project. By Session 12, you will have built the complete pipeline yourself.
+
+A few things to keep in mind:
+
+- **Sessions build on each other.** Missing a session or falling behind makes the next one harder. Attendance and keeping pace matter more in a cumulative build than in a standalone class.
+- **We are moving quickly.** This workshop introduces many tools and concepts — conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl — without going deep on any of them. The goal is exposure and a working mental model, not mastery.
+- **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment, not graded.
+- **You will not understand everything the first time.** That is normal. The materials are designed to be returned to.
+
+### What We Do Not Expect
+
+We do not expect you to be able to code a complete analytics pipeline from scratch when this workshop ends. We do not expect you to memorize syntax, commands, or package names.
+
+### What We Do Hope
+
+- You pick up at least a few techniques that are immediately useful in your day-to-day work.
+- You develop a working mental model of what an automated pipeline looks like and what each component does.
+- You feel comfortable returning to the workshop materials as a reference when you want to build something new.
+- You get comfortable directing an AI coding agent — the context you build in this workshop gives you enough vocabulary to ask better questions, validate the output, and catch mistakes.
+
+### Support and Resources
+
+All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference forever — long after the live sessions end.
+
+Office hours are held directly after every session. The workshop Teams channel is open for questions and troubleshooting between sessions. There are no bad questions — ask during sessions, in Teams, or at office hours.
+
+---
+
 ## The Problem: A Report That Takes All Day
 
 Here is the current workflow for producing the middle school outreach report:
@@ -68,46 +108,6 @@ You do not need to follow along on your own computer today. This session is obse
 
 ---
 
-## The Tool Stack
-
-This workshop uses four tools. Each one has a specific job; none of them overlap.
-
-### Python
-
-Python is the programming language. It is what reads data, transforms it, and writes the output files. You do not need to install Python separately — it comes bundled with Miniconda (below).
-
-### Miniconda (conda)
-
-Miniconda is an environment manager. It lets you create isolated environments — a named set of packages at specific versions — so that this project's dependencies do not interfere with anything else on your computer.
-
-Every project in this workshop runs inside the `student-report` conda environment, which is defined in `environment.yml`. Creating the environment from that file guarantees that every participant runs the exact same version of every package.
-
-> **Mac note:** conda works the same on Mac. The commands are identical; you will use Terminal instead of Command Prompt.
-
-### Git
-
-Git is version control. It records every change you make to your code, so you can see what you changed, when, and why — and undo it if something breaks.
-
-In this workshop, you will use Git to:
-- Get your own copy of the workshop code (fork + clone)
-- Save your work as you go (commit)
-- Keep your copy up to date if the workshop repo changes (pull)
-
-### Visual Studio Code (VS Code)
-
-VS Code is the code editor. It is where you will read and write Python files. It has a built-in terminal so you can run commands without switching windows, and it integrates with both conda (to select the right Python interpreter) and Git (to see what you have changed).
-
-### How They Fit Together
-
-```
-Write code       Run code          Track changes
-in VS Code  →  conda env runs it  →  git records it
-```
-
-VS Code is the surface you work on. Conda provides the Python environment that executes your code. Git saves a history of your work. These three tools are the foundation of professional Python development — not just for this workshop.
-
----
-
 ## Workshop Roadmap
 
 | Session | Topic | What you'll build |
@@ -130,46 +130,8 @@ Sessions 4 and 5 require a VPN connection to the GSU network.
 
 ---
 
-## How to Follow Along
-
-All workshop code lives in a single GitHub repository. You will work in your own fork — a personal copy of the repo tied to your GitHub account. Changes you make stay in your fork and do not affect anyone else's copy.
-
-### Step 1 — Create a GitHub account
-
-If you do not already have one, go to [github.com](https://github.com), click **Sign Up**, and follow the instructions.
-
-### Step 2 — Fork the workshop repo
-
-1. Go to the workshop repository on GitHub: `https://github.com/GSU-Analytics/automating-analytics-workshop`
-2. Click the **Fork** button in the upper right.
-3. Accept the defaults and click **Create fork**.
-
-Your fork will be at: `https://github.com/YOUR-USERNAME/automating-analytics-workshop`
-
-You will clone your fork to your computer in Session 2.
-
-### Step 3 — Confirm your tools are installed
-
-Before Session 2, verify that the following are installed on your machine. You should have received setup instructions prior to the workshop.
-
-**Windows:** Open Command Prompt (`Win + R`, type `cmd`, press Enter) and run:
-
-```
-conda --version
-git --version
-```
-
-Both commands should print a version number with no errors. If either fails, bring your laptop to Session 2 and your instructor will help you get set up.
-
-**Mac:** Open Terminal and run the same two commands.
-
----
-
 ## Additional Resources
 
-- [Miniconda installation guide](https://docs.conda.io/projects/miniconda/en/latest/miniconda-other-installer-links.html)
-- [Git download](https://git-scm.com/downloads)
-- [VS Code download](https://code.visualstudio.com/download)
 - [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/_downloads/843d9e0198f2a193a3484886fa28163c/conda-cheatsheet.pdf)
 - [Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 - *Automate the Boring Stuff with Python*, 3rd Ed. — reference book for this workshop

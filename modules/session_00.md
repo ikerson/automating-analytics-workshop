@@ -84,7 +84,17 @@ Miniconda installs both `conda` and Python. You do not need to install Python se
 
 ---
 
-### Step 2 — Git and Git Bash
+### Step 2 — GitHub Account
+
+1. Go to [github.com](https://github.com) and click **Sign Up**.
+2. Follow the prompts to create a free personal account.
+3. Verify your email address when GitHub sends you a confirmation message.
+
+You do not need a paid plan or an organization account. A free personal account is all that is required.
+
+---
+
+### Step 3 — Git and Git Bash
 
 Git Bash is included automatically with the Git for Windows installer — no separate download is needed.
 
@@ -97,11 +107,28 @@ Git Bash is included automatically with the Git for Windows installer — no sep
    ```
    You should see output like `git version 2.x.x`.
 
+#### Configure Git
+
+Git needs your name and email to label your commits. Run these two commands in Git Bash, replacing the values with your own name and the email address you used to create your GitHub account:
+
+```
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Verify the settings saved:
+
+```
+git config --list
+```
+
+You should see `user.name` and `user.email` in the output.
+
 > **Video walkthrough:** [Installing Git on Windows](https://youtu.be/4xqVv2lTo40?si=GVTTywH1x-hzSGE6&t=33)
 
 ---
 
-### Step 3 — Visual Studio Code
+### Step 4 — Visual Studio Code
 
 1. Download the **Windows** installer from the [VS Code download page](https://code.visualstudio.com/download).
 2. Run the installer and accept all default options.
@@ -122,17 +149,19 @@ VS Code detects Git Bash after installation but does not set it as the default t
 4. In the dropdown, select **Git Bash**.
 5. Open a new terminal with `` Ctrl + ` `` (backtick). The terminal panel should show `bash` in the upper right.
 
+> **Video walkthrough:** [Setting Git Bash as the default terminal in VS Code](https://www.youtube.com/watch?v=PzJCwfYfIzY)
+
+#### Install the Python Extension
+
+VS Code needs the Python extension to understand `.py` files and find conda environments.
+
+1. Click the **Extensions** icon in the left sidebar (or `Ctrl+Shift+X`).
+2. Search for **Python**.
+3. Install the extension published by **Microsoft** (extension ID: `ms-python.python`).
+
+If the extension is already installed, you will see a gear icon instead of an Install button.
+
 > **Video walkthrough:** [Installing VSCode on Windows](https://www.youtube.com/watch?v=CPmQwlycfGI)
-
----
-
-### Step 4 — GitHub Account
-
-1. Go to [github.com](https://github.com) and click **Sign Up**.
-2. Follow the prompts to create a free personal account.
-3. Verify your email address when GitHub sends you a confirmation message.
-
-You do not need a paid plan or an organization account. A free personal account is all that is required.
 
 ---
 
@@ -145,6 +174,7 @@ Before Session 1, confirm all three tools are working. Open **Git Bash** (search
 | `conda --version` | `conda 24.x.x` (or similar) |
 | `git --version` | `git version 2.x.x` (or similar) |
 | `code --version` | A version number, e.g. `1.9x.x` |
+| `git config --list` | Lines including `user.name` and `user.email` |
 
 Running these checks in Git Bash — rather than Command Prompt — also confirms that Git Bash itself is working correctly.
 
