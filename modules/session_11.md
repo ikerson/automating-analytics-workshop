@@ -141,8 +141,8 @@ Open `student_report/reports/student_report.xlsx` and verify five sheets: Studen
 With all four modules complete, run them in sequence from the repo root to produce every output file:
 
 ```bash
-python student_report/db.py       # requires VPN — saves enrollment.csv
-python student_report/api.py      # requires VPN — saves schools.csv
+python student_report/db.py       # requires GSU network — saves enrollment.csv
+python student_report/api.py      # saves schools.csv
 python student_report/transform.py
 python student_report/report.py
 ```

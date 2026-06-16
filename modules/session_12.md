@@ -20,7 +20,7 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-> **This session requires VPN.** `main.py` calls `get_enrollment()` from `db.py` and `get_school_data()` from `api.py`. Both require a network connection to the GSU VPN.
+> **GSU network required.** `main.py` calls `get_enrollment()` from `db.py`, which connects to the Oracle server on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN first.
 
 ---
 

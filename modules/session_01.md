@@ -28,7 +28,7 @@ A few things to keep in mind:
 
 - **Sessions build on each other.** Missing a session or falling behind makes the next one harder. Attendance and keeping pace matter more in a cumulative build than in a standalone class.
 - **We are moving quickly.** This workshop introduces many tools and concepts — conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl — without going deep on any of them. The goal is exposure and a working mental model, not mastery.
-- **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment, not graded.
+- **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment.
 - **You will not understand everything the first time.** That is normal. The materials are designed to be returned to.
 
 ### What We Do Not Expect
@@ -40,13 +40,13 @@ We do not expect you to be able to code a complete analytics pipeline from scrat
 - You pick up at least a few techniques that are immediately useful in your day-to-day work.
 - You develop a working mental model of what an automated pipeline looks like and what each component does.
 - You feel comfortable returning to the workshop materials as a reference when you want to build something new.
-- You get comfortable directing an AI coding agent — the context you build in this workshop gives you enough vocabulary to ask better questions, validate the output, and catch mistakes.
+- You get comfortable directing an AI coding agent. The context you build in this workshop gives you enough vocabulary to ask better questions, validate the output, and catch mistakes.
 
 ### Support and Resources
 
-All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference forever — long after the live sessions end.
+All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference forever.
 
-Office hours are held directly after every session. The workshop Teams channel is open for questions and troubleshooting between sessions. There are no bad questions — ask during sessions, in Teams, or at office hours.
+Office hours are held directly after every session. The workshop Teams channel is open for questions and troubleshooting between sessions. There are no bad questions. Ask during sessions, in Teams, or at office hours.
 
 ---
 
@@ -112,8 +112,9 @@ You do not need to follow along on your own computer today. This session is obse
 
 | Session | Topic | What you'll build |
 |---|---|---|
+| 0 *(before session 1)* | Before you begin | Miniconda, Git, VS Code installed; GitHub account; repo forked |
 | 1 | The problem + tooling overview | (this session — observation) |
-| 2 | Environment setup | Conda environment, VS Code, first Git commit |
+| 2 | Clone, build, and run | Clone your fork, create the conda environment, first commit and push |
 | 3 | Pandas and working with data | Load and explore the survey CSV |
 | 4 | Connecting to the database | `db.py` v1 — raw Oracle connection |
 | 5 | Working with database results | `db.py` v2 — `pd.read_sql()`, save to CSV |
@@ -126,7 +127,7 @@ You do not need to follow along on your own computer today. This session is obse
 | 12 | The automated pipeline | `main.py` — wire it all together |
 | 13 *(optional)* | Unit testing | `tests/` — pytest basics |
 
-Sessions 4 and 5 require a VPN connection to the GSU network.
+Sessions 4 and 5 require a connection to the GSU network. On campus, GSU WiFi is sufficient. Off campus, connect to the GSU VPN first.
 
 ---
 

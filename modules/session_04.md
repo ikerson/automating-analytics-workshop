@@ -6,7 +6,7 @@ Sessions 1–3 gave us the tools and showed how to load the static survey CSV. N
 
 Reference: Prior session — Session 3
 
-> **VPN required.** The Oracle server is only reachable on the GSU network. Connect to the VPN before starting the code-along and before running the practice exercise.
+> **GSU network required.** The Oracle server is only reachable on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN before starting the code-along and before running the practice exercise.
 
 ---
 
@@ -68,19 +68,11 @@ ORACLE_DSN=ec2-54-91-230-172.compute-1.amazonaws.com:1521/XEPDB1
 
 Copy it to create your local credentials file:
 
-```bash
-cp student_report/.env.example student_report/.env
-```
+In the Explorer pane, right-click `student_report/.env.example` and choose **Copy**. Right-click the `student_report/` folder and choose **Paste**. Then right-click the pasted file, choose **Rename** (or press `F2`), type `.env`, and press Enter.
 
-Open `student_report/.env` in VS Code and replace `your_password_here` with the password your instructor gave you. Leave `ORACLE_DSN` and `ORACLE_LIB_DIR` as they are — the DSN is the server address (not a secret), and `ORACLE_LIB_DIR` stays blank because we use thin mode, which needs no Oracle client installation.
+Open `student_report/.env` in VS Code and replace `your_password_here` with the password your instructor gave you. Leave `ORACLE_DSN` as-is — it is the server address, not a secret. `ORACLE_LIB_DIR` stays blank because we use thin mode, which needs no Oracle client installation.
 
-Verify the file is gitignored:
-
-```bash
-cat .gitignore
-```
-
-You should see `student_report/.env` listed. That entry means Git will never stage this file, even if you run `git add .`.
+**Verify the file is gitignored:** In the Explorer pane, click `.gitignore` (repo root) to open it. Confirm `student_report/.env` is listed. That entry means Git will never stage this file, even if you run `git add .`.
 
 ---
 
@@ -129,7 +121,7 @@ You should see:
 Connection test successful. Cursor object: <oracledb.Cursor object at 0x...>
 ```
 
-If you see `ValueError: Oracle user is required`, confirm that `student_report/.env` exists and uses `ORACLE_USER`, not the old `DB_USER` key name. If you get a network error or timeout, check that your VPN is active.
+If you see `ValueError: Oracle user is required`, confirm that `student_report/.env` exists and uses `ORACLE_USER`, not the old `DB_USER` key name. If you get a network error or timeout, confirm you are connected to GSU WiFi (on campus) or the GSU VPN (off campus).
 
 ### Running your first query
 
@@ -187,7 +179,7 @@ In Session 5 we will:
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 >
-> **VPN required.**
+> **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
 ### Your Task
 

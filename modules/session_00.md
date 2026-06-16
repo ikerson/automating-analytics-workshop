@@ -233,6 +233,3 @@ If you plan to work on exercises off-campus, you will need to connect via VPN fi
 - [Downloading and Installing Miniconda3](https://www.youtube.com/watch?v=-H_onyfW9VE)
 - [Installing Git on Windows](https://youtu.be/4xqVv2lTo40?si=GVTTywH1x-hzSGE6&t=33)
 - [Installing VSCode on Windows](https://www.youtube.com/watch?v=CPmQwlycfGI)
-
-**Full environment setup reference**
-- [GSU Analytics — Python Environment Setup](https://github.com/GSU-Analytics/python_guides/wiki/Python-Environment-Setup) (general reference; this module supersedes it for workshop-specific setup)

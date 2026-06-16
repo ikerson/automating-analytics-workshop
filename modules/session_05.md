@@ -6,7 +6,7 @@ Session 4 confirmed the Oracle connection works and ran a single-table query. Th
 
 Reference: Prior session — Session 4
 
-> **VPN required.** The Oracle server is only reachable on the GSU network. Connect to the VPN before starting the code-along and before running the practice exercise.
+> **GSU network required.** The Oracle server is only reachable on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN before starting the code-along and before running the practice exercise.
 
 ---
 
@@ -263,7 +263,7 @@ In Session 6, we shift to the API side of the data flow. `db.py` stays exactly a
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 >
-> **VPN required.**
+> **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
 ### Your Task
 
