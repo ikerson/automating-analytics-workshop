@@ -12,13 +12,7 @@ Reference: Prior session — Session 6
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/api.py`. This is the exploration file you built in Session 6.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

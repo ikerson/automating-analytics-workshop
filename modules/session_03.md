@@ -12,13 +12,7 @@ Reference: Prior session — Session 2
 
 Open VS Code, activate your conda environment in the terminal, and open or clear `scratch.py` in the repo root. You will build the code-along script in that file, running it after each addition.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

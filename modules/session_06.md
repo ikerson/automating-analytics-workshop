@@ -12,13 +12,7 @@ Reference: *Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requ
 
 Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/api.py`. You will build this file step by step during the code-along.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

@@ -12,13 +12,7 @@ Reference: Prior sessions — Sessions 5 and 7
 
 Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/transform.py`.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

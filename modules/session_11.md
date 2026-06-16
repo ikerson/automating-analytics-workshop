@@ -12,13 +12,7 @@ Reference: Prior session — Session 10
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/report.py`.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

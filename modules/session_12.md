@@ -12,13 +12,7 @@ Reference: Prior sessions — Sessions 4–11
 
 Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/main.py`.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report
@@ -270,15 +264,7 @@ The pipeline now runs end-to-end with a single command. A few directions to cons
 
 **Scheduling** — instead of running the command manually each month, the pipeline can be scheduled to run automatically.
 
-On macOS or Linux, a cron job runs a command on a schedule. Open the cron editor with `crontab -e` and add a line like:
-
-```
-0 8 1 * * cd /path/to/repo && conda run -n student-report python student_report/main.py --year 2019 --output student_report/reports/ >> student_report/reports/pipeline.log 2>&1
-```
-
-This runs the pipeline at 8 AM on the first of every month and appends output to a log file.
-
-On Windows, Task Scheduler provides the same capability through a GUI. Create a new task, set the trigger to monthly, and set the action to run `conda run -n student-report python student_report/main.py --year 2019 --output student_report\reports\` from the repo root directory.
+On Windows, Task Scheduler provides scheduling through a GUI. Create a new task, set the trigger to monthly, and set the action to run `conda run -n student-report python student_report/main.py --year 2019 --output student_report\reports\` from the repo root directory.
 
 **Year parameter** — the `--year` argument makes it straightforward to generate reports for prior years without changing the code.
 

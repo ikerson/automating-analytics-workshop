@@ -14,13 +14,7 @@ Reference: Prior sessions — Sessions 8–11 (`transform.py` and `report.py` ar
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/tests/`.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report

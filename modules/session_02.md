@@ -37,7 +37,7 @@ cd automating-analytics-workshop
 Verify the files are there:
 
 ```
-dir
+ls
 ```
 
 You should see the top-level repo contents, including the `student_report/` folder.

@@ -14,13 +14,7 @@ Reference: Prior session — Session 4
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/db.py`. This is the file you built in Session 4.
 
-**Windows (CMD or Git Bash):**
-
-```
-conda activate student-report
-```
-
-**Mac:**
+In Git Bash:
 
 ```
 conda activate student-report
