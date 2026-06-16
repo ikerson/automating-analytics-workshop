@@ -1,0 +1,24 @@
+flowchart LR
+    subgraph vscode["VS Code — Your Workspace"]
+        Editor["editor\nwrite .py files"]
+        GitBash["Git Bash\nbuilt-in terminal"]
+    end
+
+    subgraph run["Run"]
+        Env["conda environment\nstudent-report\nPython + packages"]
+    end
+
+    subgraph output["Output"]
+        Reports["reports/\n.csv  .png  .xlsx"]
+    end
+
+    subgraph track["Save & Share"]
+        Git["Git\nversion control"]
+        GitHub["GitHub\ncloud storage"]
+    end
+
+    GitBash -->|"conda activate\npython main.py"| Env
+    Env -->|"pipeline produces"| Reports
+    GitBash -->|"git commit\ngit push"| Git
+    Git -->|"push"| GitHub
+    GitHub -->|"fork & clone"| GitBash
