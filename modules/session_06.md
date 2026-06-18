@@ -10,9 +10,11 @@ Reference: Prior session — Session 5
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/report.py`.
+Open VS Code and activate your conda environment in the terminal.
 
-In Git Bash:
+In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `report.py`.
+
+In the terminal:
 
 ```
 conda activate student-report
