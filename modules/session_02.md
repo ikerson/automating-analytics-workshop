@@ -4,6 +4,8 @@
 
 You should have your tools installed and your fork created. This session connects everything: you will clone your fork to your computer, create the conda environment that all remaining sessions depend on, and run your first Python script inside VS Code. By the end, you will have made your first commit and push to GitHub.
 
+This session has two parts. **Steps 1–3** set up your environment — these must be working before any later session, so if you get stuck here, ask for help right away. **Step 4** walks through the Git commit-and-push workflow you will repeat each week; if you run low on time, you can finish it at office hours without falling behind.
+
 ---
 
 > **Before you start:** Confirm you completed all steps in `session_00.md`. Open Git Bash and run `conda --version`, `git --version`, and `git config --list`. All three should return output with no errors. If any fail, work through `session_00.md` before continuing.
@@ -125,6 +127,10 @@ C:\Users\YOUR-USERNAME\miniconda3\envs\student-report\python.exe
 ```
 
 Replace `YOUR-USERNAME` with your Windows username. Once selected, the interpreter name appears in the VS Code status bar at the bottom right.
+
+---
+
+> **Checkpoint — the essential setup is done.** If Steps 1–3 are working — fork cloned, `(student-report)` shows in your terminal prompt, the VS Code interpreter is set, and `python --version` reports 3.11.x — you are ready for every Phase 1 session. Step 4 below is the Git workflow you will reuse each week. It is important, but if you are short on time or hit a credential snag, you can complete it at office hours. Do not let a Git hiccup stall the rest of the class: flag the instructor and keep moving.
 
 ---
 

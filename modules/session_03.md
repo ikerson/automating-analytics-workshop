@@ -191,7 +191,7 @@ result = count_by_school(df)
 print(result.head(10))
 ```
 
-This is a simplified preview of `summarize_top_schools()` in `transform.py`, which you will build in Session 9. The structure is the same: a function accepts a DataFrame, performs a transformation, and returns a new DataFrame.
+This is a simplified preview of `summarize_top_schools()` in `transform.py`, which you will build in Session 5. The structure is the same: a function accepts a DataFrame, performs a transformation, and returns a new DataFrame.
 
 ### Why functions?
 
@@ -247,7 +247,7 @@ In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on yo
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_03_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_03_answer.py`.
+The starter script is at `exercises/session_03_exercise.py`. It contains instructions and fill-in-the-blank placeholders. Every exercise in this workshop uses the same convention: a `# TODO:` comment marks each blank. Replace `"___"` (with the quotes) with a string value, and replace a bare `___` (no quotes) with a variable name or expression. If you get stuck, the completed version is at `exercises/session_03_answer.py`.
 
 Run from the repo root:
 
