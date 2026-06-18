@@ -57,7 +57,9 @@ You write Python files in the VS Code editor. Git Bash — running as the built-
 
 ## A Note on GSU Managed Machines
 
-GSU-managed computers may require administrator credentials to install software. If any installer prompts for a password you do not have, contact the [GSU Technology Help Desk](https://technology.gsu.edu/about/contact/) and ask them to install Miniconda, Git, and VS Code before Session 1.
+These tools should install on GSU-managed computers without administrator credentials. If an installer asks for a password you do not have, double-check that you are following the steps correctly.
+
+If the prompt persists, contact the [GSU Technology Help Desk](https://technology.gsu.edu/about/contact/) and ask them to install Miniconda, Git, and VS Code before Session 1.
 
 Allow **30–60 minutes** for the full setup, not including any IT wait time.
 
@@ -209,7 +211,7 @@ If setup is not complete before Session 1, bring your laptop and let the instruc
 | Pre-workshop questions and troubleshooting | [TBD — Teams channel link] |
 | Office hours | Directly after each workshop session |
 
-**Teams channel:** The workshop has a dedicated Microsoft Teams channel for questions, troubleshooting, and announcements. Join before Session 1 so you have a place to ask for help with setup. The link to join is [TBD].
+**Teams channel:** The workshop has a dedicated Microsoft Teams channel for questions, troubleshooting, and announcements. Join before Session 1 so you have a place to ask for help with setup. [Join the Teams chat here](https://teams.microsoft.com/l/chat/19:4d970a6b3f7e4a53befaa7528a3b4e70@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D).
 
 ---
 
@@ -224,10 +226,11 @@ If you plan to work on exercises off-campus, you will need to connect via VPN fi
 ## Additional Resources
 
 **Cheat sheets**
-- [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/_downloads/843d9e0198f2a193a3484886fa28163c/conda-cheatsheet.pdf)
+- [Conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
 - [Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 - [VS Code keyboard shortcuts — Windows](https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf)
 - [Windows Command Line cheat sheet](https://drive.google.com/file/d/1qoAbZb0M2Adka2f--JoqIXps_SWZNJX8/view)
+- [Bash Commands cheat sheet](https://linuxsimply.com/wp-content/uploads/2023/04/Basic-linux-commands-cheat-sheet-by-linuxsimply.com_.pdf)
 
 **Video walkthroughs**
 - [Downloading and Installing Miniconda3](https://www.youtube.com/watch?v=-H_onyfW9VE)

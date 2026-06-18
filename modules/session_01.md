@@ -22,7 +22,7 @@ The learning curve is steep. The payoff is high.
 
 ### How This Workshop Teaches
 
-Sessions follow a code-along format: the instructor writes code, you follow on your own machine. Each session adds one file or one function to the project. By Session 12, you will have built the complete pipeline yourself.
+Sessions follow a code-along format: the instructor introduces code, you follow on your own machine. Each session adds one file or one function to the project. By Session 12, you will have built the complete pipeline.
 
 A few things to keep in mind:
 
@@ -44,13 +44,17 @@ We do not expect you to be able to code a complete analytics pipeline from scrat
 
 ### Support and Resources
 
-All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference forever.
+All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference after the workshop ends.
 
 Office hours are held directly after every session. The workshop Teams channel is open for questions and troubleshooting between sessions. There are no bad questions. Ask during sessions, in Teams, or at office hours.
 
 ---
 
 ## The Problem: A Report That Takes All Day
+
+Your GSU outreach office needs to produce the middle school outreach report every month. The report shows which former middle schools your current students attended, how many students came from each, and how those schools break down by size and location. The report is used to decide which schools to prioritize in the next outreach cycle. 
+
+Right now, producing it requires manual exports from Oracle, a CSV download from the Urban Institute website, as well as an an email download of a survey. This process takes hours of work in Excel. This workshop replaces that process in two deliberate phases.
 
 Here is the current workflow for producing the middle school outreach report:
 
@@ -76,34 +80,42 @@ The problems stack up:
 
 This workshop replaces the manual process in two deliberate phases.
 
-**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo — enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
+**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo — enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website and email. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
+
+**Phase 1 — provided CSV files**
+
+```
+enrollment CSV               survey CSV                schools CSV
+data/enrollment.csv    data/survey_middle_schools.csv  data/schools.csv
+      │                              │                          │
+  read_csv()                    read_csv()                   read_csv()
+      │                              │                          │
+  enrollment_df                 survey_df                   school_df
+  (one row per                  student_id                  (NY + NJ
+  student × course)             middle_school_name          middle schools)
+                                ncessch
+      │                              │                          │
+      └──────────── transform.py ────┴──────────────────────────┘
+                          │
+             1. deduplicate enrollment → one row per student
+             2. merge students → survey on student_id
+             3. merge result → CCD on ncessch
+             4. assign school_size bucket (enrollment column)
+             5. summarize: top 10 schools, ZIP counts, city counts, size dist.
+                          │
+                      report.py
+               ┌──────────┴──────────┐
+           charts (.png)        Excel workbook
+           - top 10 schools     - Student Data
+           - school size dist.  - Top 10 Schools
+                                - By ZIP
+                                - By School Size
+                                - Charts
+```
 
 **Phase 2 (Sessions 8–11):** You will build the code that automates where those CSV files come from — a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 12, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
 
-This two-step structure is intentional. Phase 1 delivers the payoff immediately. Phase 2 explains the plumbing that makes it fully automatic. The transform and report code you write in Phase 1 is exactly what the automated pipeline calls in Session 12 — nothing gets thrown away.
-
----
-
-## What We'll Build
-
-By Session 12 you will run one command:
-
-```
-python main.py --year 2019 --output reports/
-```
-
-And in under a minute, the `reports/` folder will contain:
-
-| Output | Description |
-|---|---|
-| `merged.csv` | One row per student, with their former middle school's name, location, and enrollment profile |
-| `top_middle_schools.png` | Horizontal bar chart — top 10 schools by student count |
-| `school_size_distribution.png` | Bar chart — students grouped by school size (Small / Medium / Large) |
-| `student_report.xlsx` | Five-sheet Excel workbook: Student Data, Top 10 Schools, By ZIP, By School Size, Charts |
-
-The same command runs every month. The output is identical in structure every time. If the data changes, the report reflects it automatically.
-
-### Data Flow
+**Phase 2 — automated pipeline**
 
 ```
 Oracle EC2                    survey CSV                Urban Institute API
@@ -133,6 +145,29 @@ Oracle EC2                    survey CSV                Urban Institute API
                                 - By School Size
                                 - Charts
 ```
+
+This two-step structure is intentional. Phase 1 delivers the payoff immediately. Phase 2 explains the plumbing that makes it fully automatic. The transform and report code you write in Phase 1 is exactly what the automated pipeline calls in Session 12. Nothing gets thrown away.
+
+---
+
+## What We'll Build
+
+By Session 12 you will run one command:
+
+```
+python main.py --year 2019 --output reports/
+```
+
+And in under a minute, the `reports/` folder will contain:
+
+| Output | Description |
+|---|---|
+| `merged.csv` | One row per student, with their former middle school's name, location, and enrollment profile |
+| `top_middle_schools.png` | Horizontal bar chart — top 10 schools by student count |
+| `school_size_distribution.png` | Bar chart — students grouped by school size (Small / Medium / Large) |
+| `student_report.xlsx` | Five-sheet Excel workbook: Student Data, Top 10 Schools, By ZIP, By School Size, Charts |
+
+The same command runs every month. The output is identical in structure every time. If the data changes, the report reflects it automatically.
 
 ---
 
