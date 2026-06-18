@@ -12,9 +12,11 @@ Reference: Prior sessions — Sessions 4–7 (`transform.py` and `report.py` are
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and open `student_report/tests/`.
+Open VS Code and activate your conda environment in the terminal.
 
-In Git Bash:
+In the Explorer pane, expand `student_report/` and then `tests/` to see the test files. Click any file to open it in the editor.
+
+In the terminal:
 
 ```
 conda activate student-report
