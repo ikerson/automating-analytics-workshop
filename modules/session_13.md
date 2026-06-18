@@ -6,7 +6,7 @@ The pipeline works. Session 13 asks: how do we know it will keep working? Unit t
 
 This session is optional. Skip it if time does not allow; the pipeline is complete without it.
 
-Reference: Prior sessions — Sessions 8–11 (`transform.py` and `report.py` are the modules under test)
+Reference: Prior sessions — Sessions 4–7 (`transform.py` and `report.py` are the modules under test)
 
 ---
 

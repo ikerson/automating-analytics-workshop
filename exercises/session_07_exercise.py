@@ -1,37 +1,34 @@
-# Session 7 Exercise — Working with API Results
+# Session 7 Exercise — Generating the Excel Report
 #
 # Task:
-#   1. Create an EducationDataAPI instance and call ccd_directory(2019, fips='36,34')
-#   2. Convert to a DataFrame with .to_df()
-#   3. Select this subset of columns:
-#      ['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']
-#   4. Filter to middle schools only: rows where school_level == 2
-#   5. Print how many middle schools remain
-#   6. Save the filtered result to exercises/data/middle_schools_2019.csv (no index)
+#   1. Load exercises/data/merged_contacts.csv (produced in the Session 4 exercise)
+#   2. Load exercises/data/size_summary.csv (produced in the Session 5 exercise)
+#   3. Write both DataFrames to a single Excel file exercises/data/contacts_report.xlsx
+#      - Sheet 1: "Contacts"  — the merged contacts data
+#      - Sheet 2: "By School Size" — the size summary
+#   4. Use index=False on both sheets
 #
 # Run from the repo root:
 #   python exercises/session_07_exercise.py
 
+___ = None  # replace each ___ with the correct value
+
 from pathlib import Path
-from educationdata import EducationDataAPI
+import pandas as pd
 
-COLUMNS = ['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']
+DATA_DIR = Path('exercises') / 'data'
 
-# TODO: Call ccd_directory for 2019 — note: fips must be a string, not a list
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips="___")
+# TODO: Load merged_contacts.csv
+contacts = pd.read_csv(DATA_DIR / "___")
 
-# 2. Convert to a DataFrame
-df = result.to_df()
+# TODO: Load size_summary.csv
+size_summary = pd.read_csv(DATA_DIR / "___")
 
-# 3. Select the column subset defined above
-df = df[COLUMNS].copy()
+# TODO: Fill in the output filename and engine
+with pd.ExcelWriter(DATA_DIR / "___", engine="___") as writer:
+    # TODO: Fill in the sheet name for the contacts data
+    contacts.to_excel(writer, sheet_name="___", index=False)
+    # TODO: Fill in which DataFrame goes on the "By School Size" sheet
+    ___.to_excel(writer, sheet_name='By School Size', index=False)
 
-# TODO: Filter to middle schools (school_level == 2)
-df = df[df["school_level"] == ___]
-
-print(f"Middle schools: {len(df)}")
-
-# TODO: Save to exercises/data/middle_schools_2019.csv — no row index
-df.to_csv(Path("exercises") / "data" / "___", index=False)
-print("Done.")
+print("Saved contacts_report.xlsx")

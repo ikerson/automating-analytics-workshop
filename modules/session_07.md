@@ -1,8 +1,8 @@
-# Session 7 — Working with API Results
+# Session 7 — Generating the Excel Report
 
 ## Introduction
 
-Session 6 called the CCD school directory API and confirmed the data is accessible. The result DataFrame has over 50 columns — far more than the pipeline needs. This session builds `api.py` v2: we define the 9 columns the pipeline uses, wrap the API call in a function, and verify the result. The pattern mirrors what we did in Session 5 for `db.py`: exploration code becomes a clean, importable module.
+Sessions 5 and 6 produced five DataFrames and two chart files. This session builds `report.py` v2: `save_excel_report()`, a function that writes a five-sheet Excel workbook and embeds the saved charts as images on a dedicated sheet. After this session, `transform.py` and `report.py` are both complete and you will run them end-to-end to produce the full Phase 1 output.
 
 Reference: Prior session — Session 6
 
@@ -10,7 +10,7 @@ Reference: Prior session — Session 6
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and open `student_report/api.py`. This is the exploration file you built in Session 6.
+Open VS Code, activate your conda environment in the terminal, and open `student_report/report.py`.
 
 In Git Bash:
 
@@ -20,168 +20,213 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-Your current `api.py` should look like this:
-
-```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.describe())
-print()
-print(df.columns.tolist())
-```
-
-Today we replace this with a function that returns only the columns the pipeline needs.
+> **No VPN or prior sessions required.** The `__main__` block imports from `transform.py` and loads the pre-committed CSV files from `student_report/data/`. It also requires the two chart `.png` files saved in Session 6. Make sure `top_middle_schools.png` and `school_size_distribution.png` exist in `student_report/reports/` before running.
 
 ---
 
-## Building api.py v2
+## Building report.py v2
 
-### Clearing the exploration code and defining the column list
+### Adding save_excel_report()
 
-Delete everything below the import. Then add a `CCD_COLUMNS` list that names the 9 columns the pipeline uses:
+`save_excel_report()` takes five inputs and an output directory: the full merged DataFrame, the three summary DataFrames, and a list of chart file paths.
 
-```python
-from educationdata import EducationDataAPI
-
-CCD_COLUMNS = [
-    'ncessch',
-    'school_name',
-    'zip_mailing',
-    'city_location',
-    'state_location',
-    'school_level',
-    'enrollment',
-    'lowest_grade_offered',
-    'highest_grade_offered',
-]
-```
-
-Storing the column list as a named constant serves two purposes: the function below stays short and readable, and any future change to the columns — adding one, removing one — happens in one place.
-
-### Writing the function
-
-Add `get_school_data()` below the constant:
+Add the function below `save_size_chart()`:
 
 ```python
-def get_school_data(year):
-    api = EducationDataAPI()
-    result = api.ccd_directory(year, fips='36,34')
-    df = result.to_df()
-    return df[CCD_COLUMNS].copy()
+def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_paths, output_dir):
+    from openpyxl import load_workbook
+    from openpyxl.drawing.image import Image as XLImage
+
+    path = Path(output_dir) / "student_report.xlsx"
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        merged_df.to_excel(writer, sheet_name='Student Data', index=False)
+        top_schools_df.to_excel(writer, sheet_name='Top 10 Schools', index=False)
+        zip_summary_df.to_excel(writer, sheet_name='By ZIP', index=False)
+        size_df.to_excel(writer, sheet_name='By School Size', index=False)
+
+    wb = load_workbook(path)
+    ws = wb.create_sheet('Charts')
+    row = 1
+    for chart_path in chart_paths:
+        img = XLImage(str(chart_path))
+        ws.add_image(img, f'A{row}')
+        row += 30
+    wb.save(path)
+    return path
 ```
 
-`df[CCD_COLUMNS]` selects only the 9 columns in the list. `.copy()` returns an independent DataFrame so that later operations on the result do not inadvertently modify the original API data.
+This function has two distinct phases. Walk through each one.
 
-The `year` parameter makes the function reusable — `get_school_data(2018)` returns 2018 data without changing anything else. The `fips='36,34'` is hardcoded because the pipeline always targets New York and New Jersey.
+### Phase 1 — Writing the four data sheets
 
-### Running the function
+```python
+with pd.ExcelWriter(path, engine='openpyxl') as writer:
+    merged_df.to_excel(writer, sheet_name='Student Data', index=False)
+    top_schools_df.to_excel(writer, sheet_name='Top 10 Schools', index=False)
+    zip_summary_df.to_excel(writer, sheet_name='By ZIP', index=False)
+    size_df.to_excel(writer, sheet_name='By School Size', index=False)
+```
 
-Add a `if __name__ == '__main__':` block to test the function without making `api.py` run on every import:
+**`pd.ExcelWriter(path, engine='openpyxl')`** — opens an Excel file for writing. `engine='openpyxl'` specifies the library that handles the `.xlsx` format. Using it as a context manager (`with ... as writer:`) guarantees the file is saved and closed when the block exits, even if an error occurs mid-write.
+
+**`.to_excel(writer, sheet_name=..., index=False)`** — each call writes one DataFrame to one sheet. `sheet_name` sets the tab label. `index=False` prevents pandas from writing the row numbers (0, 1, 2, …) as an extra column in the spreadsheet.
+
+When the `with` block exits, the file is written to disk with four sheets.
+
+### Phase 2 — Adding the Charts sheet
+
+```python
+wb = load_workbook(path)
+ws = wb.create_sheet('Charts')
+row = 1
+for chart_path in chart_paths:
+    img = XLImage(str(chart_path))
+    ws.add_image(img, f'A{row}')
+    row += 30
+wb.save(path)
+```
+
+`pd.ExcelWriter` does not support inserting images — it is a DataFrame-to-sheet writer, nothing more. To embed charts, we reopen the file with `openpyxl` directly.
+
+**`load_workbook(path)`** — opens the `.xlsx` file that ExcelWriter just saved, returning a workbook object with the four existing sheets intact.
+
+**`wb.create_sheet('Charts')`** — appends a new empty sheet named `Charts` to the workbook.
+
+**`XLImage(str(chart_path))`** — loads a PNG file as an Excel image object. `str(chart_path)` is needed because `XLImage` expects a string path, not a `Path` object.
+
+**`ws.add_image(img, f'A{row}')`** — places the image with its top-left corner anchored at cell `A{row}`. The first chart lands at `A1`; each subsequent chart is placed 30 rows lower (`row += 30`) to avoid overlap.
+
+**`wb.save(path)`** — writes the modified workbook back to the same file, overwriting the version that ExcelWriter saved. The final file has five sheets.
+
+The two `from openpyxl import ...` lines appear inside the function rather than at the top of the file. `openpyxl` is only needed by this one function, so placing the imports here keeps the dependency visible alongside the code that uses it.
+
+### Testing with a __main__ block
+
+Add a `if __name__ == '__main__':` block:
 
 ```python
 if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
+    from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
+
+    enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
+    survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
+    school_df = pd.read_csv('student_report/data/schools.csv')
+
+    students = get_students(enrollment_df)
+    merged = merge_data(students, survey_df, school_df)
+    top_schools = summarize_top_schools(merged)
+    zip_summary = summarize_by_zip(merged)
+    size_summary = summarize_by_size(merged)
+
+    output_dir = 'student_report/reports'
+    chart_paths = [
+        Path(output_dir) / 'top_middle_schools.png',
+        Path(output_dir) / 'school_size_distribution.png',
+    ]
+
+    path = save_excel_report(merged, top_schools, zip_summary, size_summary, chart_paths, output_dir)
+    print(f"Saved: {path}")
 ```
 
 Run from the repo root:
 
 ```bash
-python student_report/api.py
+python student_report/report.py
 ```
 
-After a short pause for pagination, you should see a row and column count followed by the first five rows. The DataFrame now has exactly 9 columns — a manageable size.
+Open `student_report/reports/student_report.xlsx` and verify five sheets: Student Data, Top 10 Schools, By ZIP, By School Size, Charts. The Charts sheet should show both chart images stacked vertically.
 
-### Exploring the result
+### Running Phase 1 End-to-End
 
-Add a few more lines to the `__main__` block to understand the data:
+With `transform.py` and `report.py` both complete, run them in sequence from the repo root to produce every output file:
 
-```python
-if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
-    print()
-    print(df['school_level'].value_counts())
+```bash
+python student_report/transform.py
+python student_report/report.py
 ```
 
-`school_level` encodes the type of school: `1` = elementary, `2` = middle, `3` = high school, `4` = other. The value counts show how many schools of each type are in the NY and NJ results. Our students attended middle schools, so most join keys will match rows where `school_level == 2` — but we keep all rows in `api.py` and let `transform.py` handle the join logic.
+After the second command, `student_report/reports/` should contain:
 
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` (Session 8) normalizes them before merging.
-
-### Saving to CSV
-
-Add a `to_csv()` call to write the selected columns to a file:
-
-```python
-if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
-    print()
-    print(df['school_level'].value_counts())
-    df.to_csv('student_report/reports/schools.csv', index=False)
-    print("Saved schools.csv")
+```
+merged.csv
+top_middle_schools.png
+school_size_distribution.png
+student_report.xlsx
 ```
 
-Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 8 will handle normalizing them.
+Open `student_report.xlsx` and confirm all five sheets are present. You have just produced the same outputs as the manual process — from the command line, in seconds, with no Excel formulas.
 
 ---
 
-## What Changes if the API Is Different?
+### What's Next: Phase 2
 
-The pipeline uses the `ccd_directory` endpoint for 2019. Swapping years is a one-character change — pass a different `year` to `get_school_data()`. The column list stays valid as long as the endpoint schema does not change across years.
+`enrollment.csv` and `schools.csv` in `student_report/data/` represent data that someone collected by hand before this workshop — enrollment exported from SQL Developer, school directory downloaded from the Urban Institute website. The Python pipeline you built in Phase 1 consumes these files exactly as the manual process would.
 
-If a column is ever renamed or removed by the API, `df[CCD_COLUMNS]` will raise a `KeyError`. That error is the right behavior — a silent mismatch would be worse. When that happens, run `df.columns.tolist()` to inspect what the API currently returns and update `CCD_COLUMNS` accordingly.
+Phase 2 eliminates the manual steps. Sessions 8–11 build `db.py` and `api.py` — the two modules that replace those static files with live queries. When `main.py` wires everything together in Session 12, you will run one command that fetches fresh data, transforms it, and produces the full report automatically.
+
+The code you wrote in Phase 1 does not change. `transform.py` and `report.py` are exactly what `main.py` will call.
 
 ---
 
-## api.py v2 — Complete File
+## report.py v2 — Complete File
 
-Remove the `if __name__ == '__main__':` block. The final `api.py` defines one constant and one function:
+Remove the `if __name__ == '__main__':` block. The final `report.py` defines three imports and three functions:
 
 ```python
-from educationdata import EducationDataAPI
-
-CCD_COLUMNS = [
-    'ncessch',
-    'school_name',
-    'zip_mailing',
-    'city_location',
-    'state_location',
-    'school_level',
-    'enrollment',
-    'lowest_grade_offered',
-    'highest_grade_offered',
-]
+import matplotlib.pyplot as plt
+import pandas as pd
+from pathlib import Path
 
 
-def get_school_data(year):
-    api = EducationDataAPI()
-    result = api.ccd_directory(year, fips='36,34')
-    df = result.to_df()
-    return df[CCD_COLUMNS].copy()
+def save_top_schools_chart(top_schools_df, output_dir):
+    path = Path(output_dir) / "top_middle_schools.png"
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(top_schools_df['middle_school_name'], top_schools_df['student_count'], color='steelblue')
+    ax.set_xlabel("Number of Students")
+    ax.set_title("Top 10 Middle Schools by Student Count")
+    ax.invert_yaxis()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+
+
+def save_size_chart(size_df, output_dir):
+    path = Path(output_dir) / "school_size_distribution.png"
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.bar(size_df['school_size'].astype(str), size_df['student_count'], color='teal')
+    ax.set_xlabel("School Size")
+    ax.set_ylabel("Number of Students")
+    ax.set_title("Students by Middle School Size")
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+
+
+def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_paths, output_dir):
+    from openpyxl import load_workbook
+    from openpyxl.drawing.image import Image as XLImage
+
+    path = Path(output_dir) / "student_report.xlsx"
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        merged_df.to_excel(writer, sheet_name='Student Data', index=False)
+        top_schools_df.to_excel(writer, sheet_name='Top 10 Schools', index=False)
+        zip_summary_df.to_excel(writer, sheet_name='By ZIP', index=False)
+        size_df.to_excel(writer, sheet_name='By School Size', index=False)
+
+    wb = load_workbook(path)
+    ws = wb.create_sheet('Charts')
+    row = 1
+    for chart_path in chart_paths:
+        img = XLImage(str(chart_path))
+        ws.add_image(img, f'A{row}')
+        row += 30
+    wb.save(path)
+    return path
 ```
 
-`main.py` (Session 12) will call `get_school_data(year)` by importing `api.py`. There is no top-level code after the import, so the import is safe — no API call happens until `get_school_data()` is explicitly called.
-
-In Session 8, we start combining the data: enrollment from `db.py` + survey CSV + school directory from `api.py` → a single merged DataFrame.
+`report.py` is now complete. Run `python student_report/transform.py` followed by `python student_report/report.py` to produce all Phase 1 outputs. In Session 12, `main.py` wires all four modules together so that a single command does this end-to-end with no manual steps.
 
 ---
 
@@ -191,23 +236,26 @@ In Session 8, we start combining the data: enrollment from `db.py` + survey CSV 
 
 ### Your Task
 
-Call the CCD directory API for 2019 and explore the full result — then filter it down.
+Write two DataFrames to separate sheets in a single Excel file.
 
-1. Create an `EducationDataAPI` instance and call `ccd_directory(2019, fips='36,34')`
-2. Convert to a DataFrame with `.to_df()`
-3. Select this subset of columns: `['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']`
-4. Filter to middle schools only: rows where `school_level == 2`
-5. Print how many middle schools remain
-6. Save the filtered result to `exercises/data/middle_schools_2019.csv` (no index)
+1. Load `exercises/data/merged_contacts.csv` (produced in the Session 8 exercise)
+2. Load `exercises/data/size_summary.csv` (produced in the Session 9 exercise)
+3. Write both to `exercises/data/contacts_report.xlsx` using `pd.ExcelWriter` with `engine='openpyxl'`:
+   - Sheet named `"Contacts"` — the merged contacts data
+   - Sheet named `"By School Size"` — the size summary
+4. Use `index=False` on both sheets
+
+Open `contacts_report.xlsx` when done and confirm both tabs are present with the correct data.
 
 Run from the repo root:
 
 ```
-python exercises/session_07_exercise.py
+python exercises/session_11_exercise.py
 ```
 
 ## Additional Resources
 
-- [EducationDataAPI — GSU-Analytics/EducationDataAPI](https://github.com/GSU-Analytics/EducationDataAPI)
-- [pandas — DataFrame column selection](https://pandas.pydata.org/docs/user_guide/indexing.html)
-- [pandas — DataFrame.to_csv](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html)
+- [pandas — ExcelWriter](https://pandas.pydata.org/docs/reference/api/pandas.ExcelWriter.html)
+- [pandas — DataFrame.to_excel](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_excel.html)
+- [openpyxl — Working with images](https://openpyxl.readthedocs.io/en/stable/images.html)
+- [openpyxl — Tutorial](https://openpyxl.readthedocs.io/en/stable/tutorial.html)

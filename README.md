@@ -21,35 +21,35 @@ python main.py --year 2019 --output reports/
 3. [Session 3 — Pandas and Working with Data](modules/session_03.md)  
    Load and inspect a CSV with pandas. Select columns, filter rows, and write a reusable function.
 
-### Part 2 — Getting Data
+### Part 2 — Transforming and Reporting Data (Phase 1)
 
-4. [Session 4 — Connecting to the Database](modules/session_04.md)  
-   Connect to the Oracle training server with `oracledb`. Store credentials in a `.env` file. Run a SELECT query and see the results.
+4. [Session 4 — Merging the Three Sources](modules/session_04.md)  
+   Deduplicate enrollment data. Perform a three-way merge: students → survey on `student_id` → school directory on `ncessch`. All three source files are pre-committed to `student_report/data/`.
 
-5. [Session 5 — Working with Database Results](modules/session_05.md)  
-   Build the full five-table enrollment query in `get_enrollment()`. Normalize column names and save enrollment data to CSV.
-
-6. [Session 6 — Calling a Web API](modules/session_06.md)  
-   Introduction to APIs and JSON. Call the Urban Institute Education Data Portal to fetch NY and NJ middle school directory data.
-
-7. [Session 7 — Working with API Results](modules/session_07.md)  
-   Select the columns you need from the API response and save to CSV.
-
-### Part 3 — Combining and Transforming Data
-
-8. [Session 8 — Merging the Three Sources](modules/session_08.md)  
-   Deduplicate enrollment data. Perform a three-way merge: students → survey on `student_id` → school directory on `ncessch`.
-
-9. [Session 9 — Aggregations and Summary Statistics](modules/session_09.md)  
+5. [Session 5 — Aggregations and Summary Statistics](modules/session_05.md)  
    Compute top schools, ZIP counts, and school size distribution using `groupby`, `agg`, and `pd.cut`.
 
-### Part 4 — Output and Automation
+6. [Session 6 — Creating Visualizations](modules/session_06.md)  
+   Build a horizontal bar chart and a vertical bar chart with matplotlib. Save them as PNG files.
 
-10. [Session 10 — Creating Visualizations](modules/session_10.md)  
-    Build a horizontal bar chart and a vertical bar chart with matplotlib. Save them as PNG files.
+7. [Session 7 — Generating the Excel Report](modules/session_07.md)  
+   Write a five-sheet Excel workbook with `pandas.ExcelWriter` and embed the chart images with `openpyxl`.
 
-11. [Session 11 — Generating the Excel Report](modules/session_11.md)  
-    Write a five-sheet Excel workbook with `pandas.ExcelWriter` and embed the chart images with `openpyxl`.
+### Part 3 — Automating Data Collection (Phase 2)
+
+8. [Session 8 — Connecting to the Database](modules/session_08.md)  
+   Connect to the Oracle training server with `lightoracle`. Store credentials in a `.env` file. Run a SELECT query and see the results.
+
+9. [Session 9 — Working with Database Results](modules/session_09.md)  
+   Build the full five-table enrollment query in `get_enrollment()`. Normalize column names and save enrollment data to CSV.
+
+10. [Session 10 — Calling a Web API](modules/session_10.md)  
+    Introduction to APIs and JSON. Call the Urban Institute Education Data Portal to fetch NY and NJ middle school directory data.
+
+11. [Session 11 — Working with API Results](modules/session_11.md)  
+    Select the columns you need from the API response and save to CSV.
+
+### Part 4 — Automation
 
 12. [Session 12 — The Automated Pipeline](modules/session_12.md)  
     Wire all modules together in `main.py` using `argparse`. Run the full pipeline end-to-end.

@@ -2,9 +2,9 @@
 
 ## Introduction
 
-Sessions 4–11 built four modules: `db.py` queries the Oracle database, `api.py` fetches the school directory, `transform.py` merges and summarizes the data, and `report.py` writes charts and the Excel workbook. Each module has been tested individually. This session builds `main.py`: a short script that imports all four modules and calls them in sequence, turning the manual multi-step process into a single command.
+Sessions 4–7 built the data transformation and reporting modules (`transform.py` and `report.py`). Sessions 8–11 built the data collection modules (`db.py` and `api.py`). Each module has been tested individually. This session builds `main.py`: a short script that imports all four modules and calls them in sequence, turning the manual multi-step process into a single command.
 
-Reference: Prior sessions — Sessions 4–11
+Reference: Prior sessions — Sessions 4–11 (all modules)
 
 ---
 
@@ -157,10 +157,9 @@ You should see progress output similar to:
 Fetching enrollment data from Oracle...
   165 students
 Loading middle school survey data...
-  107 survey records
+  240 survey records
 Fetching school data from API (year=2019, fips='36,34')...
-  (pagination in progress)
-  118 school records matched
+  7439 school records
 Merging and summarizing...
   Saved student_report/reports/merged.csv
 Generating charts...

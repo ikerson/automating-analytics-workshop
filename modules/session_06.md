@@ -1,16 +1,16 @@
-# Session 6 — Calling a Web API
+# Session 6 — Creating Visualizations
 
 ## Introduction
 
-Session 5 finished the database side of the pipeline — `db.py` can now return the full enrollment DataFrame. This session starts the API side: we look at what a web API is, make a raw HTTP request to see the structure, then use the `urban-education-data` package to call the Urban Institute's CCD school directory and inspect what comes back. The result is `api.py` v1 — exploration code that confirms we can reach the API and understand the data. Session 7 will refactor it into a reusable function.
+`transform.py` is complete. The pipeline now produces three summary DataFrames — top schools, by ZIP, and by school size — plus the full merged DataFrame. This session builds `report.py` v1: two functions that turn those summaries into saved chart files. By the end of the session, two `.png` files are written to the reports directory and the chart-generation layer of the pipeline is done.
 
-Reference: *Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requests)
+Reference: Prior session — Session 5
 
 ---
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/api.py`. You will build this file step by step during the code-along.
+Open VS Code, activate your conda environment in the terminal, and create a new file at `student_report/report.py`.
 
 In Git Bash:
 
@@ -20,190 +20,165 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
----
-
-## What Is an API?
-
-In the manual workflow, someone visits a website, finds the right download link, and saves the file. A **web API** (Application Programming Interface) is a way for programs to request the same data programmatically — no browser, no clicking, no manual download.
-
-An API exposes one or more **endpoints**: specific URLs that return data in a structured format. You send an HTTP GET request (the same kind of request a browser sends when you type a URL) and the server responds with data, usually formatted as **JSON**.
-
-**JSON** (JavaScript Object Notation) is a text format for structured data. It looks like a Python dictionary:
-
-```json
-{
-  "ncessch": 360007702472,
-  "school_name": "PS 1 The Bergen",
-  "city_location": "New York",
-  "state_location": "NY",
-  "enrollment": 312
-}
-```
-
-Each school in the CCD directory is one JSON object. The API returns a list of these objects, one per school.
+> **No VPN or prior sessions required.** The `__main__` block imports from `transform.py` and loads the pre-committed CSV files from `student_report/data/`.
 
 ---
 
-## Making a Raw HTTP Request
+## Building report.py v1
 
-The `requests` library is the standard Python tool for making HTTP requests. It is installed automatically as a dependency of the `urban-education-data` package in your conda environment.
+### Starting the file
 
-Add this to `api.py` and run it:
+Create `student_report/report.py` and add the imports:
 
 ```python
-import requests
-
-url = 'https://educationdata.urban.org/api/v1/schools/ccd/directory/2019/?fips=36&per_page=1'
-response = requests.get(url)
-print(response.status_code)
-print(response.json())
+import matplotlib.pyplot as plt
+import pandas as pd
+from pathlib import Path
 ```
+
+`matplotlib` is already installed in the conda environment. `pd` and `Path` are included because the `__main__` block uses them; neither is used by the two chart functions directly.
+
+### save_top_schools_chart()
+
+Add `save_top_schools_chart()` below the imports:
+
+```python
+def save_top_schools_chart(top_schools_df, output_dir):
+    path = Path(output_dir) / "top_middle_schools.png"
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(top_schools_df['middle_school_name'], top_schools_df['student_count'], color='steelblue')
+    ax.set_xlabel("Number of Students")
+    ax.set_title("Top 10 Middle Schools by Student Count")
+    ax.invert_yaxis()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+```
+
+Walk through each line:
+
+**`fig, ax = plt.subplots(figsize=(10, 6))`** — creates a figure and a single set of axes. `fig` is the overall container; `ax` is the drawing area where the chart is placed. `figsize=(10, 6)` sets the width and height in inches — wide enough to show school names without overlap.
+
+**`ax.barh(...)`** — draws a horizontal bar chart. The first argument is the y-axis labels (`middle_school_name`), the second is the bar lengths (`student_count`). Horizontal bars are the right choice here because school names are long strings that would overlap on a vertical chart's x-axis.
+
+**`ax.set_xlabel("Number of Students")`** — labels the x-axis. On a horizontal bar chart the x-axis carries the numeric values, so this is the axis that needs a unit label.
+
+**`ax.set_title(...)`** — adds a title above the chart.
+
+**`ax.invert_yaxis()`** — by default `barh` places the first row at the bottom of the chart. After sorting descending in `summarize_top_schools()`, the school with the highest count is in the first row — which would end up at the bottom without this call. `invert_yaxis()` flips the order so the largest bar appears at the top, which is the natural reading direction for a ranked list.
+
+**`plt.tight_layout()`** — adjusts spacing so axis labels and the title are not clipped at the figure edges. It should be called after all labels are set and before saving.
+
+**`plt.savefig(path)`** — writes the figure to a file. The format is inferred from the file extension (`.png`). The file is written to `output_dir` regardless of the current working directory.
+
+**`plt.close()`** — releases the figure from memory. Without this call, every chart created in a session accumulates in memory, and matplotlib will print a warning after 20 open figures. Always call `plt.close()` immediately after saving.
+
+**`return path`** — returns the saved file path so the caller (later, `main.py`) can log or display it.
+
+### save_size_chart()
+
+Add `save_size_chart()` below `save_top_schools_chart()`:
+
+```python
+def save_size_chart(size_df, output_dir):
+    path = Path(output_dir) / "school_size_distribution.png"
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.bar(size_df['school_size'].astype(str), size_df['student_count'], color='teal')
+    ax.set_xlabel("School Size")
+    ax.set_ylabel("Number of Students")
+    ax.set_title("Students by Middle School Size")
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+```
+
+The structure mirrors `save_top_schools_chart()` with two differences:
+
+**`ax.bar()` instead of `ax.barh()`** — vertical bars. The three size category labels are short (`Small`, `Medium`, `Large`) and fit comfortably on a horizontal x-axis, so there is no reason to rotate the chart.
+
+**`size_df['school_size'].astype(str)`** — `school_size` is a pandas `Categorical` column (created by `pd.cut()` in Session 9). matplotlib does not know how to place categorical tick marks automatically, so converting to plain strings produces clean, evenly spaced labels on the x-axis.
+
+**`ax.set_ylabel("Number of Students")`** — a vertical chart carries the numeric values on the y-axis, which now needs the unit label. The x-axis label (`ax.set_xlabel`) describes the categories.
+
+No `invert_yaxis()` call — the three size bins are not a ranked list, so the default bottom-to-top direction is fine.
+
+### Testing with a __main__ block
+
+Add a `if __name__ == '__main__':` block that imports from `transform.py` and produces both charts:
+
+```python
+if __name__ == '__main__':
+    from transform import get_students, merge_data, summarize_top_schools, summarize_by_size
+
+    enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
+    survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
+    school_df = pd.read_csv('student_report/data/schools.csv')
+
+    students = get_students(enrollment_df)
+    merged = merge_data(students, survey_df, school_df)
+    top_schools = summarize_top_schools(merged)
+    size_summary = summarize_by_size(merged)
+
+    output_dir = 'student_report/reports'
+    chart1 = save_top_schools_chart(top_schools, output_dir)
+    chart2 = save_size_chart(size_summary, output_dir)
+    print(f"Saved: {chart1}")
+    print(f"Saved: {chart2}")
+```
+
+The `from transform import ...` line works because running `python student_report/report.py` adds the `student_report/` directory to Python's module search path automatically, making `transform.py` importable by name.
 
 Run from the repo root:
 
 ```bash
-python student_report/api.py
+python student_report/report.py
 ```
 
-You should see `200` (HTTP OK) followed by a JSON object. The `.json()` method parses the response body into a Python dictionary. The structure will look like:
-
-```
-{
-  'count': 1740,
-  'next': 'https://educationdata.urban.org/api/v1/...',
-  'previous': None,
-  'results': [{ ... one school record ... }]
-}
-```
-
-The `count` field tells you how many total records match the query (1,740 New York schools in 2019). The `results` list contains the actual records — only one here because we asked for `per_page=1`. Getting all 1,740 records would require paginating through each page of results.
-
-Delete this exploration code. The `urban-education-data` package handles pagination for you — you never need to page through results manually.
+You should see two file paths printed. Open `student_report/reports/` and confirm that `top_middle_schools.png` and `school_size_distribution.png` were created or updated. Open each file to verify the charts look right — the horizontal bar chart should show schools ranked largest at the top; the vertical bar chart should show three labeled columns.
 
 ---
 
-## The urban-education-data Package
+## report.py v1 — Complete File
 
-The `urban-education-data` package is a Python client for the Urban Institute Education Data Portal, built and maintained by GSU Analytics. It is already installed in your conda environment via `environment.yml`.
-
-It wraps the raw HTTP calls and automatic pagination into a single method call:
+Remove the `if __name__ == '__main__':` block. The final `report.py` v1 defines three imports and two functions:
 
 ```python
-from educationdata import EducationDataAPI
+import matplotlib.pyplot as plt
+import pandas as pd
+from pathlib import Path
 
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
+
+def save_top_schools_chart(top_schools_df, output_dir):
+    path = Path(output_dir) / "top_middle_schools.png"
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(top_schools_df['middle_school_name'], top_schools_df['student_count'], color='steelblue')
+    ax.set_xlabel("Number of Students")
+    ax.set_title("Top 10 Middle Schools by Student Count")
+    ax.invert_yaxis()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
+
+
+def save_size_chart(size_df, output_dir):
+    path = Path(output_dir) / "school_size_distribution.png"
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.bar(size_df['school_size'].astype(str), size_df['student_count'], color='teal')
+    ax.set_xlabel("School Size")
+    ax.set_ylabel("Number of Students")
+    ax.set_title("Students by Middle School Size")
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+    return path
 ```
 
-`fips='36,34'` requests schools in both New York (36) and New Jersey (34). The result is an `EducationDataResult` object — not yet a DataFrame. To get a DataFrame, call `.to_df()`:
+`main.py` (Session 12) will call both functions by importing `report.py`. There is no top-level code after the imports, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
 
-```python
-df = result.to_df()
-```
-
-The package fetches all pages automatically. For NY and NJ middle schools in 2019, that is several thousand records — the call may take a few seconds.
-
-> **Important:** `fips='36,34'` must be a comma-separated **string**. Passing a Python list (`fips=[36, 34]`) returns an HTTP 400 error. This is a quirk of how the API parses the parameter.
-
----
-
-## Building api.py v1
-
-### Calling the API
-
-Replace the contents of `api.py` with:
-
-```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-```
-
-`result.count` is the total number of records returned — useful for a quick sanity check before pulling everything into a DataFrame.
-
-Run it:
-
-```bash
-python student_report/api.py
-```
-
-You should see a number in the thousands. This is the total count of NY and NJ schools matching the CCD directory for 2019.
-
-### Converting to a DataFrame
-
-Now convert the result and inspect it:
-
-```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-```
-
-Run again. After a short pause for pagination, you will see the first five rows and a column summary. The DataFrame has many columns — over 50. The next session will narrow it to the 9 columns the pipeline actually uses.
-
-### Exploring the columns
-
-Add `.describe()` and a column list to get a better picture:
-
-```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.describe())
-print()
-print(df.columns.tolist())
-```
-
-Run again. The column list will be long. Note the columns the pipeline cares about: `ncessch`, `school_name`, `zip_mailing`, `city_location`, `state_location`, `school_level`, `enrollment`, `lowest_grade_offered`, `highest_grade_offered`.
-
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 8.
-
----
-
-## api.py v1 — Complete File
-
-Here is the complete `api.py` v1:
-
-```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.describe())
-print()
-print(df.columns.tolist())
-```
-
-In Session 7 we will:
-
-1. Define a `CCD_COLUMNS` list with the 9 columns the pipeline needs
-2. Wrap the API call in a `get_school_data(year)` function
-3. Return only the selected columns
-4. Remove the top-level print statements so `api.py` is safe to import from `main.py`
+In Session 7, we add `save_excel_report()` to `report.py`: a function that writes the full five-sheet Excel workbook and embeds the saved chart images.
 
 ---
 
@@ -213,24 +188,27 @@ In Session 7 we will:
 
 ### Your Task
 
-Call the CCD directory API for the year **2018** instead of 2019.
+Create a horizontal bar chart showing the top 5 middle schools by number of outreach contacts.
 
-1. Create an `EducationDataAPI` instance
-2. Call `ccd_directory` for 2018 with `fips='36,34'`
-3. Print `result.count` — how many schools are returned?
-4. Convert to a DataFrame with `.to_df()`
-5. Print `.head()` and `.info()`
-6. Print the list of column names
+1. Load `exercises/data/merged_contacts.csv` (produced in the Session 8 exercise)
+2. Drop contacts with no school match (`school_name` is `NaN`)
+3. Use `groupby('school_name')` and `.agg()` to count students per school, sort descending, and keep the top 5
+4. Create a horizontal bar chart (`barh`) of those 5 schools
+5. Label the x-axis `"Number of Contacts"` and add a title `"Top 5 Middle Schools by Contacts"`
+6. Invert the y-axis so the school with the most contacts is at the top
+7. Call `plt.tight_layout()` and save to `exercises/data/top_schools_chart.png`
+8. Call `plt.close()` after saving
 
 Run from the repo root:
 
 ```
-python exercises/session_06_exercise.py
+python exercises/session_10_exercise.py
 ```
 
 ## Additional Resources
 
-- [EducationDataAPI — GSU-Analytics/EducationDataAPI](https://github.com/GSU-Analytics/EducationDataAPI)
-- [Urban Institute Education Data Portal](https://educationdata.urban.org/)
-- [requests documentation](https://requests.readthedocs.io/)
-- *Automate the Boring Stuff with Python*, Chapter 12 — Downloading Files from the Web
+- [matplotlib — Horizontal bar chart (barh)](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.barh.html)
+- [matplotlib — Bar chart (bar)](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.bar.html)
+- [matplotlib — savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html)
+- [matplotlib — Pyplot tutorial](https://matplotlib.org/stable/tutorials/pyplot.html)
+- *Automate the Boring Stuff with Python*, 3rd Ed. — Chapter 17 (working with files and directories)

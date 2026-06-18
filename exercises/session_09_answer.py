@@ -1,30 +1,19 @@
-# Session 9 Exercise — Aggregations and Summary Statistics (Answer)
+# Session 9 Exercise — Working with Database Results (Answer)
 #
 # Run from the repo root:
 #   python exercises/session_09_answer.py
+#
+# NOTE: VPN required — the Oracle server is only reachable on the GSU network.
 
 from pathlib import Path
-import pandas as pd
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-DATA_DIR = Path('exercises') / 'data'
-
-merged = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
-
-merged['school_size'] = pd.cut(
-    merged['enrollment'],
-    bins=[0, 300, 700, float('inf')],
-    labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
-)
-
-print(merged['city_location'].value_counts())
-
-size_summary = (
-    merged.dropna(subset=['school_size'])
-    .groupby('school_size', observed=True)
-    .agg(student_count=('student_id', 'count'), avg_enrollment=('enrollment', 'mean'))
-    .reset_index()
-)
-print(size_summary)
-
-size_summary.to_csv(DATA_DIR / 'size_summary.csv', index=False)
+load_dotenv(Path('student_report') / '.env')
+conn = LightOracleConnection()
+df = conn.execute_query("SELECT * FROM course")
+df.columns = df.columns.str.lower()
+df = df[df['cost'] > 1000]
+df.to_csv(Path('exercises') / 'data' / 'courses_over_1000.csv', index=False)
+print(f"Courses with cost > 1000: {len(df)}")
 print("Done.")

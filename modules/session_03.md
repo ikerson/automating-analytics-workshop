@@ -203,6 +203,46 @@ A good rule of thumb: if a block of code has a name you can give it in plain Eng
 
 ---
 
+## The Other Two Sources
+
+The pipeline uses three CSV files in total. You just explored the survey CSV. The other two are also in `student_report/data/`.
+
+### enrollment.csv
+
+```python
+enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
+print(enrollment_df.head())
+enrollment_df.info()
+```
+
+A few things to notice:
+- Column names are lowercase — a normalization step that `db.py` applies when it queries Oracle.
+- There are more rows than students. A student enrolled in three courses appears three times — one row per enrollment. Session 4 will deduplicate this to one row per student before merging.
+- `student_id` is the key that links this file to the survey.
+
+This file was exported from the Oracle training database. In Sessions 8–9 you will write the Python code that generates it automatically.
+
+### schools.csv
+
+```python
+school_df = pd.read_csv('student_report/data/schools.csv')
+print(school_df.head())
+school_df.info()
+```
+
+A few things to notice:
+- `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. This is a quirk of how the Urban Institute API returns them; `transform.py` normalizes them in Session 4 before merging.
+- `school_level` encodes the school type: `2.0` means middle school.
+- There are thousands of rows — every NY and NJ school in the 2019 CCD directory.
+
+This file was downloaded from the Urban Institute Education Data Portal. In Sessions 10–11 you will write the Python code that generates it automatically.
+
+### Why these files are here
+
+In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on your team collected by hand before the workshop — the same steps in the old workflow that together took 30–50 minutes. You will work with them directly. Phase 2 (Sessions 8–11) builds the automation that eliminates those manual steps entirely.
+
+---
+
 ## Practice Exercise
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.

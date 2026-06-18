@@ -1,44 +1,40 @@
-# Session 9 Exercise — Aggregations and Summary Statistics
+# Session 9 Exercise — Working with Database Results
 #
 # Task:
-#   1. Load exercises/data/merged_contacts.csv (produced in the Session 8 exercise)
-#   2. Use pd.cut() on the enrollment column to create a school_size column
-#      Bins: [0, 300, 700, inf]  Labels: ['Small (<300)', 'Medium (300-700)', 'Large (700+)']
-#   3. Print value_counts() on city_location — how many contacts attended schools in each city?
-#   4. Use groupby('school_size', observed=True) and .agg() to compute student count
-#      and average enrollment per size bucket
-#   5. Save the size summary to exercises/data/size_summary.csv (no index)
+#   1. Load student_report/.env
+#   2. Connect to Oracle using LightOracleConnection
+#   3. Query all rows from the course table
+#   4. Normalize column names to lowercase
+#   5. Filter to courses with cost > 1000
+#   6. Save the filtered result to exercises/data/courses_over_1000.csv (no index)
+#   7. Print how many courses remain after filtering
 #
 # Run from the repo root:
 #   python exercises/session_09_exercise.py
+#
+# NOTE: VPN required — the Oracle server is only reachable on the GSU network.
 
 from pathlib import Path
-import pandas as pd
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-DATA_DIR = Path('exercises') / 'data'
+# 1. Load credentials
+load_dotenv(Path("student_report") / ".env")
 
-# TODO: Load merged_contacts.csv
-merged = pd.read_csv(DATA_DIR / "___")
+# 2. Connect to Oracle
+conn = LightOracleConnection()
 
-# TODO: Create a school_size column — fill in the column name and the three labels
-merged['school_size'] = pd.cut(
-    merged["___"],
-    bins=[0, 300, 700, float('inf')],
-    labels=["___", "___", "___"],
-)
+# TODO: Query all rows from the course table
+df = conn.execute_query("___")
 
-# TODO: Print value_counts() on the city column
-print(merged["___"].value_counts())
+# 4. Normalize column names to lowercase
+df.columns = df.columns.str.lower()
 
-# TODO: Fill in the groupby column and the two aggregation columns
-size_summary = (
-    merged.dropna(subset=['school_size'])
-    .groupby("___", observed=True)
-    .agg(student_count=("___", "count"), avg_enrollment=("___", "mean"))
-    .reset_index()
-)
-print(size_summary)
+# TODO: Filter to courses with cost > 1000
+df = df[df["___"] > ___]
 
-# TODO: Save the size summary — no row index
-size_summary.to_csv(DATA_DIR / "___", index=False)
+# TODO: Save to exercises/data/courses_over_1000.csv — no row index
+df.to_csv(Path("exercises") / "data" / "___", index=False)
+
+print(f"Courses with cost > 1000: {len(___)}")
 print("Done.")

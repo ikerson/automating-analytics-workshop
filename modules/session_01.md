@@ -72,6 +72,16 @@ The problems stack up:
 - There is no record of what changed between runs.
 - No one else can reproduce the report from scratch without asking.
 
+### The Solution — In Two Steps
+
+This workshop replaces the manual process in two deliberate phases.
+
+**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo — enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
+
+**Phase 2 (Sessions 8–11):** You will build the code that automates where those CSV files come from — a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 12, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
+
+This two-step structure is intentional. Phase 1 delivers the payoff immediately. Phase 2 explains the plumbing that makes it fully automatic. The transform and report code you write in Phase 1 is exactly what the automated pipeline calls in Session 12 — nothing gets thrown away.
+
 ---
 
 ## What We'll Build
@@ -92,6 +102,37 @@ And in under a minute, the `reports/` folder will contain:
 | `student_report.xlsx` | Five-sheet Excel workbook: Student Data, Top 10 Schools, By ZIP, By School Size, Charts |
 
 The same command runs every month. The output is identical in structure every time. If the data changes, the report reflects it automatically.
+
+### Data Flow
+
+```
+Oracle EC2                    survey CSV                Urban Institute API
+(STUDENT schema)         data/survey_middle_schools.csv  (CCD directory)
+      │                              │                          │
+   db.py                        read_csv()                   api.py
+      │                              │                          │
+  enrollment_df                 survey_df                   school_df
+  (one row per                  student_id                  (NY + NJ,
+  student × course)             middle_school_name          fips='36,34')
+                                ncessch
+      │                              │                          │
+      └──────────── transform.py ────┴──────────────────────────┘
+                          │
+             1. deduplicate enrollment → one row per student
+             2. merge students → survey on student_id
+             3. merge result → CCD on ncessch
+             4. assign school_size bucket (enrollment column)
+             5. summarize: top 10 schools, ZIP counts, city counts, size dist.
+                          │
+                      report.py
+               ┌──────────┴──────────┐
+           charts (.png)        Excel workbook
+           - top 10 schools     - Student Data
+           - school size dist.  - Top 10 Schools
+                                - By ZIP
+                                - By School Size
+                                - Charts
+```
 
 ---
 
@@ -115,19 +156,21 @@ You do not need to follow along on your own computer today. This session is obse
 | 0 *(before session 1)* | Before you begin | Miniconda, Git, VS Code installed; GitHub account; repo forked |
 | 1 | The problem + tooling overview | (this session — observation) |
 | 2 | Clone, build, and run | Clone your fork, create the conda environment, first commit and push |
-| 3 | Pandas and working with data | Load and explore the survey CSV |
-| 4 | Connecting to the database | `db.py` v1 — raw Oracle connection |
-| 5 | Working with database results | `db.py` v2 — `pd.read_sql()`, save to CSV |
-| 6 | Calling a web API | `api.py` v1 — fetch school directory |
-| 7 | Working with API results | `api.py` v2 — select columns, save to CSV |
-| 8 | Merging the three sources | `transform.py` v1 — three-way merge |
-| 9 | Aggregations and summaries | `transform.py` v2 — groupby, pd.cut |
-| 10 | Creating visualizations | `report.py` v1 — two charts |
-| 11 | Generating the Excel report | `report.py` v2 — five-sheet workbook |
+| 3 | Pandas and working with data | Load and explore all three provided CSVs |
+| **— Phase 1: Working with Provided Data —** | | |
+| 4 | Merging the three sources | `transform.py` v1 — three-way merge from provided CSVs |
+| 5 | Aggregations and summaries | `transform.py` v2 — groupby, pd.cut |
+| 6 | Creating visualizations | `report.py` v1 — two charts |
+| 7 | Generating the Excel report | `report.py` v2 — five-sheet workbook; run Phase 1 end-to-end |
+| **— Phase 2: Automating Data Collection —** | | |
+| 8 | Connecting to the database | `db.py` v1 — raw Oracle connection |
+| 9 | Working with database results | `db.py` v2 — `conn.execute_query()`, save to CSV |
+| 10 | Calling a web API | `api.py` v1 — fetch school directory |
+| 11 | Working with API results | `api.py` v2 — select columns, save to CSV |
 | 12 | The automated pipeline | `main.py` — wire it all together |
 | 13 *(optional)* | Unit testing | `tests/` — pytest basics |
 
-Sessions 4 and 5 require a connection to the GSU network. On campus, GSU WiFi is sufficient. Off campus, connect to the GSU VPN first.
+Sessions 8 and 9 require a connection to the GSU network. On campus, GSU WiFi is sufficient. Off campus, connect to the GSU VPN first.
 
 ---
 
