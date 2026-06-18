@@ -120,6 +120,14 @@ Walk through each section:
 
 ### argparse — the command-line interface
 
+When you type a command like `python student_report/main.py --year 2019`, Python receives everything after `python` as a plain list of strings:
+
+```python
+['student_report/main.py', '--year', '2019']
+```
+
+Every value in that list is a string — including `'2019'`. `argparse` is the standard library module that turns that raw list into named Python values your function can actually use. It handles the string-to-integer conversion, supplies default values for anything you omit, and generates a `--help` message automatically.
+
 Add the entry point at the bottom of the file:
 
 ```python
@@ -133,13 +141,19 @@ if __name__ == "__main__":
     main(args)
 ```
 
-**`argparse.ArgumentParser`** — creates a parser that reads arguments from the command line and produces a help message when `--help` is passed.
+**`argparse.ArgumentParser`** — creates the parser object. The `description` text appears at the top of the `--help` output.
 
-**`add_argument('--year', type=int, default=2019, ...)`** — defines an optional `--year` argument. `type=int` converts the string value from the command line to an integer before it reaches `main()`. `default=2019` means the argument can be omitted and the pipeline will still run.
+**`add_argument('--year', type=int, default=2019, ...)`** — registers `--year` as an optional argument. The `--` prefix is the convention for named arguments you can pass in any order or leave out entirely. `type=int` tells argparse to convert the string `'2019'` to the integer `2019` before storing it. `default=2019` means the argument can be omitted and the pipeline will still run with that value.
 
-**`add_argument('--output', ...)`** — defines an optional `--output` argument for the output directory path. It is passed to `main()` as `args.output`.
+**`add_argument('--output', ...)`** — registers `--output` the same way. No `type` is specified, so the value stays a string, which is what `Path()` expects.
 
-**`parse_args()`** — reads `sys.argv`, matches arguments to the definitions above, and returns a namespace object. `args.year` and `args.output` are then available as plain attributes.
+**`parse_args()`** — reads the raw list, matches each `--name value` pair to a registered argument, applies type conversions and defaults, and returns a *namespace object* — a simple container where each argument becomes an attribute. After this line, `args` looks like:
+
+```python
+Namespace(year=2019, output='reports/')
+```
+
+`args.year` and `args.output` are then available as plain attributes inside `main()`.
 
 **`if __name__ == "__main__":`** — this guard ensures the argparse block only runs when `main.py` is executed directly. When another script does `from main import something`, this block is skipped — which prevents argparse from trying to read command-line arguments at import time.
 
