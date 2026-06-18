@@ -1,15 +1,17 @@
 """
-One-time script to generate the two pre-provided data files for the restructured workshop.
+Author-only script — run by the workshop author, not participants.
 
-Run this from the repo root with the GSU network active (VPN if off-campus):
-    python student_report/generate_data_files.py
-
-Produces:
+Regenerates the two pre-provided static data files for Phase 1 (Sessions 3–7):
     student_report/data/enrollment.csv   — five-table Oracle enrollment JOIN
     student_report/data/schools.csv      — CCD directory 2019, NY+NJ, 9 columns
 
-Both files are committed to the repo as static pre-provided data for Phase 1 (Sessions 3–7).
-Delete this script after committing the files.
+Both files are committed to the repo so participants can work through Phase 1
+without a database or API connection. This script is kept (not deleted) so the
+static files can be refreshed when the source data changes.
+
+Requires: the GSU network (VPN if off-campus) for the Oracle query, plus reachability
+to the Urban Institute API for the school directory. Run from the repo root:
+    python student_report/generate_data_files.py
 """
 
 import sys
@@ -36,11 +38,9 @@ def main():
     school_df.to_csv(out, index=False)
     print(f"  Saved {out}  ({len(school_df)} rows)")
 
-    print("\nDone. Commit both files to git:")
+    print("\nDone. Commit the refreshed files to git:")
     print("  git add student_report/data/enrollment.csv student_report/data/schools.csv")
-    print("  git commit -m 'add pre-provided data files for phase 1'")
-    print("  git rm student_report/generate_data_files.py")
-    print("  git commit -m 'remove data file generation helper'")
+    print("  git commit -m 'refresh pre-provided data files'")
 
 
 if __name__ == "__main__":
