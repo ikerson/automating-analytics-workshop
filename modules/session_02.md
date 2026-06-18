@@ -2,9 +2,7 @@
 
 ## Introduction
 
-You have your tools installed and your fork created. This session connects everything: you will clone your fork to your computer, create the conda environment that all remaining sessions depend on, and run your first Python script inside VS Code. By the end, you will have made your first commit and push to GitHub.
-
-Reference: Before You Begin (`session_00.md`)
+You should have your tools installed and your fork created. This session connects everything: you will clone your fork to your computer, create the conda environment that all remaining sessions depend on, and run your first Python script inside VS Code. By the end, you will have made your first commit and push to GitHub.
 
 ---
 
@@ -12,9 +10,39 @@ Reference: Before You Begin (`session_00.md`)
 
 ---
 
+## VS Code Orientation
+
+VS Code has four areas you will use in every session.
+
+**Explorer** (left sidebar, `Ctrl+Shift+E`) is the file navigator. It shows every file and folder in your project. Click any file to open it in the editor. Right-click to create, rename, or delete files.
+
+**Editor** (center) is where you read and write code. Clicking a file in the Explorer opens it here. You can have multiple files open as tabs.
+
+**Terminal** (bottom panel, `` Ctrl+` ``) is the built-in command line. This is where you run Python scripts, activate conda environments, and execute Git commands. All terminal commands in this workshop are typed here.
+
+**Source Control** (left sidebar, `Ctrl+Shift+G`) is the Git interface. It shows which files have changed since your last commit. You can stage, commit, and review diffs here — though this workshop will use Git commands in the terminal instead.
+
+---
+
 ## Step 1 — Clone Your Fork
 
 Cloning downloads a copy of your fork from GitHub to your local machine.
+
+### Using VS Code
+
+1. Open VS Code.
+2. Press `Ctrl+Shift+P` to open the Command Palette.
+3. Type **Git: Clone** and press Enter.
+4. Paste your fork URL, replacing `YOUR-USERNAME` with your GitHub username:
+   ```
+   https://github.com/YOUR-USERNAME/automating-analytics-workshop.git
+   ```
+5. A file picker opens — choose a destination folder, for example your Desktop.
+6. When VS Code asks **"Would you like to open the cloned repository?"**, click **Open**.
+
+The `automating-analytics-workshop` folder will appear in the Explorer pane on the left.
+
+### Alternative — Git Bash
 
 Open **Git Bash** from the Windows Start menu. Navigate to the folder where you want to store the project — for example, your Desktop:
 
@@ -28,31 +56,14 @@ Clone your fork, replacing `YOUR-USERNAME` with your GitHub username:
 git clone https://github.com/YOUR-USERNAME/automating-analytics-workshop.git
 ```
 
-This creates a folder called `automating-analytics-workshop`. Navigate into it:
+Navigate into the folder and verify the files are there:
 
 ```
 cd automating-analytics-workshop
-```
-
-Verify the files are there:
-
-```
 ls
 ```
 
-You should see the top-level repo contents, including the `student_report/` folder.
-
----
-
-## Step 2 — Open the Repo in VS Code
-
-Open VS Code, then open the repo folder you just cloned:
-
-1. **File → Open Folder**
-2. Navigate to and select the `automating-analytics-workshop` folder
-3. Click **Select Folder**
-
-The folder will appear in the Explorer pane on the left. You can also open it directly from Git Bash:
+You should see the top-level repo contents, including the `student_report/` folder. Then open the folder in VS Code:
 
 ```
 code .
@@ -64,7 +75,7 @@ Open the built-in terminal with `` Ctrl+` ``. Confirm the terminal panel shows *
 
 ---
 
-## Step 3 — Create the Conda Environment
+## Step 2 — Create the Conda Environment
 
 The repo includes `student_report/environment.yml`, which defines every package this workshop uses. Create the environment from it:
 
@@ -98,7 +109,7 @@ You should see Python 3.11.x.
 
 ---
 
-## Step 4 — Select the Python Interpreter in VS Code
+## Step 3 — Select the Python Interpreter in VS Code
 
 VS Code needs to know which Python to use:
 
@@ -117,7 +128,7 @@ Replace `YOUR-USERNAME` with your Windows username. Once selected, the interpret
 
 ---
 
-## Step 5 — Your First Commit
+## Step 4 — Your First Commit
 
 You will create a small Python script, run it, and commit it to your fork. This is the same workflow you will use every session.
 
@@ -147,9 +158,21 @@ Environment is working!
 pandas version: 2.x.x
 ```
 
-If you see `ModuleNotFoundError: No module named 'pandas'`, the wrong Python interpreter is active. Re-check Step 4.
+If you see `ModuleNotFoundError: No module named 'pandas'`, the wrong Python interpreter is active. Re-check Step 3.
 
 ### Stage, commit, and push
+
+#### Using VS Code
+
+1. Open the Source Control pane with `Ctrl+Shift+G`. You should see `scratch.py` listed under **Changes**.
+2. Click the **+** icon next to `scratch.py` to stage it.
+3. Type a commit message in the box at the top — for example: `add scratch.py to test environment`
+4. Click **Commit**.
+5. Click **Sync Changes** (or the **↑** icon in the status bar) to push to GitHub.
+
+The first time you push, Git Credential Manager will open a browser window asking you to sign in to GitHub. Complete the sign-in, then return to VS Code.
+
+#### Alternative — Git Bash
 
 Check what Git sees:
 

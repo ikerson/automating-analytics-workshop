@@ -246,20 +246,12 @@ In Session 6, we build `report.py` v1: the two chart functions that visualize th
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-Summarize the merged contacts file from Session 8 by school size and city.
-
-1. Load `exercises/data/merged_contacts.csv` (produced in the Session 8 exercise)
-2. Use `pd.cut()` on the `enrollment` column to create a `school_size` column — use the same bins and labels as the pipeline: `[0, 300, 700, float('inf')]` and `['Small (<300)', 'Medium (300-700)', 'Large (700+)']`
-3. Print `value_counts()` on `city_location` — how many contacts attended schools in each city?
-4. Use `groupby('school_size', observed=True)` and `.agg()` to compute student count and average enrollment per size bucket
-5. Save the size summary to `exercises/data/size_summary.csv` (no index)
+The starter script is at `exercises/session_05_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_05_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_09_exercise.py
+python exercises/session_05_exercise.py
 ```
 
 ## Additional Resources

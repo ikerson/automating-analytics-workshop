@@ -234,23 +234,12 @@ def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-Write two DataFrames to separate sheets in a single Excel file.
-
-1. Load `exercises/data/merged_contacts.csv` (produced in the Session 8 exercise)
-2. Load `exercises/data/size_summary.csv` (produced in the Session 9 exercise)
-3. Write both to `exercises/data/contacts_report.xlsx` using `pd.ExcelWriter` with `engine='openpyxl'`:
-   - Sheet named `"Contacts"` — the merged contacts data
-   - Sheet named `"By School Size"` — the size summary
-4. Use `index=False` on both sheets
-
-Open `contacts_report.xlsx` when done and confirm both tabs are present with the correct data.
+The starter script is at `exercises/session_07_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_07_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_11_exercise.py
+python exercises/session_07_exercise.py
 ```
 
 ## Additional Resources

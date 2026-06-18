@@ -247,15 +247,7 @@ In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on yo
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-The file `exercises/data/outreach_contacts.csv` contains a list of student contacts for the outreach program. Some contacts are missing a phone number.
-
-1. Load the CSV and inspect it with `.head()` and `.info()`
-2. Select only these columns: `student_id`, `first_name`, `last_name`, `phone`, `zip_code`
-3. Drop rows where `phone` is missing
-4. Print how many rows remain
-5. Save the cleaned DataFrame to `exercises/data/outreach_contacts_cleaned.csv`
+The starter script is at `exercises/session_03_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_03_answer.py`.
 
 Run from the repo root:
 

@@ -255,24 +255,12 @@ In Session 5, we add three aggregation functions to `transform.py`: summaries by
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-Merge three outreach data files to build a contact list enriched with school information.
-
-1. Load `exercises/data/outreach_contacts.csv` (25 contacts, student IDs 101–125)
-2. Load `exercises/data/school_survey_2019.csv` (school name and NCES ID for student IDs 101–120)
-3. Load `exercises/data/middle_schools_2019.csv` (NJ and NY middle school directory with enrollment and city)
-4. Merge contacts with survey on `student_id` (left join) — this adds `ncessch` to each matched contact
-5. Normalize `ncessch` in both DataFrames: `.astype(str).str.split('.').str[0]`
-6. Merge the result with middle_schools on `ncessch` (left join) — this adds enrollment, city, and other school columns
-7. Print how many contacts have no school match (i.e., `school_name` is `NaN`)
-8. Print the `student_id`, first name, and last name of those unmatched contacts
-9. Save the merged result to `exercises/data/merged_contacts.csv` (no index)
+The starter script is at `exercises/session_04_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_04_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_08_exercise.py
+python exercises/session_04_exercise.py
 ```
 
 ## Additional Resources

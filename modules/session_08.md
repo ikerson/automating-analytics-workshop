@@ -181,17 +181,12 @@ In Session 9 we will:
 >
 > **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
-### Your Task
-
-1. Load `student_report/.env`
-2. Connect to Oracle using `LightOracleConnection`
-3. Query the first 10 rows of the `zipcode` table
-4. Print the result
+The starter script is at `exercises/session_08_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_08_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_04_exercise.py
+python exercises/session_08_exercise.py
 ```
 
 ## Additional Resources

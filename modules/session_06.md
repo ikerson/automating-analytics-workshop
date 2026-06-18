@@ -186,23 +186,12 @@ In Session 7, we add `save_excel_report()` to `report.py`: a function that write
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-Create a horizontal bar chart showing the top 5 middle schools by number of outreach contacts.
-
-1. Load `exercises/data/merged_contacts.csv` (produced in the Session 8 exercise)
-2. Drop contacts with no school match (`school_name` is `NaN`)
-3. Use `groupby('school_name')` and `.agg()` to count students per school, sort descending, and keep the top 5
-4. Create a horizontal bar chart (`barh`) of those 5 schools
-5. Label the x-axis `"Number of Contacts"` and add a title `"Top 5 Middle Schools by Contacts"`
-6. Invert the y-axis so the school with the most contacts is at the top
-7. Call `plt.tight_layout()` and save to `exercises/data/top_schools_chart.png`
-8. Call `plt.close()` after saving
+The starter script is at `exercises/session_06_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_06_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_10_exercise.py
+python exercises/session_06_exercise.py
 ```
 
 ## Additional Resources

@@ -211,21 +211,12 @@ In Session 11 we will:
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-### Your Task
-
-Call the CCD directory API for the year **2018** instead of 2019.
-
-1. Create an `EducationDataAPI` instance
-2. Call `ccd_directory` for 2018 with `fips='36,34'`
-3. Print `result.count` — how many schools are returned?
-4. Convert to a DataFrame with `.to_df()`
-5. Print `.head()` and `.info()`
-6. Print the list of column names
+The starter script is at `exercises/session_10_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_10_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_06_exercise.py
+python exercises/session_10_exercise.py
 ```
 
 ## Additional Resources

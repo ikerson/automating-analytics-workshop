@@ -267,22 +267,12 @@ In Session 10, we shift to the API side of the data flow. `db.py` stays exactly 
 >
 > **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
-### Your Task
-
-The `course` table holds a list of all courses with their descriptions and costs.
-
-1. Load `student_report/.env`
-2. Connect to Oracle using `LightOracleConnection`
-3. Query all rows from the `course` table: `SELECT * FROM course`
-4. Normalize column names to lowercase
-5. Filter to courses where `cost > 1000`
-6. Save the filtered result to `exercises/data/courses_over_1000.csv` (no index)
-7. Print how many courses remain after filtering
+The starter script is at `exercises/session_09_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_09_answer.py`.
 
 Run from the repo root:
 
 ```
-python exercises/session_05_exercise.py
+python exercises/session_09_exercise.py
 ```
 
 ## Additional Resources
