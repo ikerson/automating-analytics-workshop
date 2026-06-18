@@ -39,7 +39,7 @@ print(df)
 print(df.info())
 ```
 
-The lines after `load_dotenv(...)` are top-level statements — they run every time this file is imported by another script, not just when you run it directly. That was fine for exploring the connection in Session 4. Today we restructure `db.py` so it defines a function instead of running code, and replace the single-table query with the full enrollment data we actually need.
+The lines after `load_dotenv(...)` are top-level statements — they run every time this file is imported by another script, not just when you run it directly. That was fine for exploring the connection in Session 8. Today we restructure `db.py` so it defines a function instead of running code, and replace the single-table query with the full enrollment data we actually need.
 
 ---
 
@@ -55,7 +55,7 @@ The workshop pipeline needs data from five tables in the Oracle database:
 | `section` | Which course each section belongs to |
 | `course` | Course name and cost |
 
-Joining all five tables produces one row for every course a student has enrolled in. A student enrolled in three courses appears three times. `transform.py` (Session 8) will deduplicate this down to one row per student before merging.
+Joining all five tables produces one row for every course a student has enrolled in. A student enrolled in three courses appears three times. `transform.py` (Session 4) will deduplicate this down to one row per student before merging.
 
 The complete SQL:
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     print(df.describe())
 ```
 
-`.describe()` reports summary statistics for numeric columns. Look at `student_id`, `cost`, and `final_grade`. Note the row count in `.info()` — it is larger than the number of students because each enrollment is its own row. Session 8 will deduplicate this to one row per student.
+`.describe()` reports summary statistics for numeric columns. Look at `student_id`, `cost`, and `final_grade`. Note the row count in `.info()` — it is larger than the number of students because each enrollment is its own row. Session 4 will deduplicate this to one row per student.
 
 ### Saving the result to CSV
 

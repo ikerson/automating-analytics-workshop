@@ -40,7 +40,7 @@ The workshop uses an Oracle database running on a GSU EC2 server. It holds five 
 
 The database uses the **Oracle SQL by Example** schema (Rischert). Public synonyms are configured, so you query `student` directly — not `student.student`.
 
-In later sessions (`db.py` v2, Session 5) you will join all five tables in a single query. Today, we start with a single table to verify the connection works.
+In later sessions (`db.py` v2, Session 9) you will join all five tables in a single query. Today, we start with a single table to verify the connection works.
 
 ---
 
@@ -145,7 +145,7 @@ Run it again:
 python student_report/db.py
 ```
 
-You will see five rows from the `student` table followed by a column summary. Notice that the column names come back in uppercase (`STUDENT_ID`, `FIRST_NAME`, ...). We will normalize those to lowercase in Session 5 when we build the `get_enrollment()` function.
+You will see five rows from the `student` table followed by a column summary. Notice that the column names come back in uppercase (`STUDENT_ID`, `FIRST_NAME`, ...). We will normalize those to lowercase in Session 9 when we build the `get_enrollment()` function.
 
 ---
 

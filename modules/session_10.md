@@ -175,7 +175,7 @@ print(df.columns.tolist())
 
 Run again. The column list will be long. Note the columns the pipeline cares about: `ncessch`, `school_name`, `zip_mailing`, `city_location`, `state_location`, `school_level`, `enrollment`, `lowest_grade_offered`, `highest_grade_offered`.
 
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 8.
+Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 4.
 
 ---
 

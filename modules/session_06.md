@@ -100,7 +100,7 @@ The structure mirrors `save_top_schools_chart()` with two differences:
 
 **`ax.bar()` instead of `ax.barh()`** — vertical bars. The three size category labels are short (`Small`, `Medium`, `Large`) and fit comfortably on a horizontal x-axis, so there is no reason to rotate the chart.
 
-**`size_df['school_size'].astype(str)`** — `school_size` is a pandas `Categorical` column (created by `pd.cut()` in Session 9). matplotlib does not know how to place categorical tick marks automatically, so converting to plain strings produces clean, evenly spaced labels on the x-axis.
+**`size_df['school_size'].astype(str)`** — `school_size` is a pandas `Categorical` column (created by `pd.cut()` in Session 5). matplotlib does not know how to place categorical tick marks automatically, so converting to plain strings produces clean, evenly spaced labels on the x-axis.
 
 **`ax.set_ylabel("Number of Students")`** — a vertical chart carries the numeric values on the y-axis, which now needs the unit label. The x-axis label (`ax.set_xlabel`) describes the categories.
 

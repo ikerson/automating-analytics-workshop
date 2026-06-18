@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
 `school_level` encodes the type of school: `1` = elementary, `2` = middle, `3` = high school, `4` = other. The value counts show how many schools of each type are in the NY and NJ results. Our students attended middle schools, so most join keys will match rows where `school_level == 2` — but we keep all rows in `api.py` and let `transform.py` handle the join logic.
 
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` (Session 8) normalizes them before merging.
+Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` (Session 4) normalizes them before merging.
 
 ### Saving to CSV
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     print("Saved schools.csv")
 ```
 
-Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 8 will handle normalizing them.
+Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 4 will handle normalizing them.
 
 ---
 
