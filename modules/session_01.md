@@ -4,7 +4,7 @@
 
 Every month, someone on your team opens SQL Developer, runs an enrollment query, downloads the results, pulls school directory data from the Urban Institute website, pastes everything into Excel, writes formulas, and manually builds a report. It takes two or more hours and introduces errors every time.
 
-This workshop replaces that process with a single Python command. By the end of the twelve sessions, you will have built the tool yourself, from scratch, one piece at a time.
+This workshop replaces that process with a single Python command. By the end of the twelve core sessions, you will have built the tool yourself, from scratch, one piece at a time.
 
 This first session is an orientation. You will see the finished tool run live, understand what each piece of the stack does, and learn how the workshop is organized.
 
@@ -30,6 +30,7 @@ A few things to keep in mind:
 - **We are moving quickly.** This workshop introduces many tools and concepts — conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl — without going deep on any of them. The goal is exposure and a working mental model, not mastery.
 - **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment.
 - **You will not understand everything the first time.** That is normal. The materials are designed to be returned to.
+- **If you fall behind, you can catch up.** Every session is typed from scratch, so there is no per-session sync step to remember. To catch up, open the module for the session you missed — each one ends with the complete version of the file it builds. Copy that code into your fork and you can rejoin at the next session.
 
 ### What We Do Not Expect
 
@@ -191,8 +192,8 @@ You do not need to follow along on your own computer today. This session is obse
 | 0 *(before session 1)* | Before you begin | Miniconda, Git, VS Code installed; GitHub account; repo forked |
 | 1 | The problem + tooling overview | (this session — observation) |
 | 2 | Clone, build, and run | Clone your fork, create the conda environment, first commit and push |
-| 3 | Pandas and working with data | Load and explore all three provided CSVs |
 | **— Phase 1: Working with Provided Data —** | | |
+| 3 | Pandas and working with data | Load and explore all three provided CSVs |
 | 4 | Merging the three sources | `transform.py` v1 — three-way merge from provided CSVs |
 | 5 | Aggregations and summaries | `transform.py` v2 — groupby, pd.cut |
 | 6 | Creating visualizations | `report.py` v1 — two charts |

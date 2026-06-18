@@ -18,10 +18,10 @@ python main.py --year 2019 --output reports/
 2. [Session 2 — Setting Up the Environment](modules/session_02.md)  
    Clone your fork, create the conda environment, configure VS Code, and make your first Git commit.
 
+### Part 2 — Working with Provided Data (Phase 1)
+
 3. [Session 3 — Pandas and Working with Data](modules/session_03.md)  
    Load and inspect a CSV with pandas. Select columns, filter rows, and write a reusable function.
-
-### Part 2 — Transforming and Reporting Data (Phase 1)
 
 4. [Session 4 — Merging the Three Sources](modules/session_04.md)  
    Deduplicate enrollment data. Perform a three-way merge: students → survey on `student_id` → school directory on `ncessch`. All three source files are pre-committed to `student_report/data/`.
