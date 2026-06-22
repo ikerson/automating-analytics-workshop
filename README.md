@@ -10,6 +10,11 @@ python main.py --year 2019 --output reports/
 
 ## Sessions
 
+### Before the Workshop
+
+0. [Session 0 — Before You Begin](modules/session_00.md)  
+   Install Miniconda, Git, VS Code, and create a GitHub account before Session 1. Includes setup verification steps and instructions for forking the workshop repo.
+
 ### Part 1 — Why, How, and Tooling
 
 1. [Session 1 — The Problem + Tooling Overview](modules/session_01.md)  
@@ -58,6 +63,26 @@ python main.py --year 2019 --output reports/
 
 13. [Session 13 — Introduction to Unit Testing](modules/session_13.md) *(optional)*  
     Write and run `pytest` tests for the transform and report modules.
+
+---
+
+## Exercises
+
+Sessions 3–11 each include a practice exercise. Run all scripts from the repo root with the conda environment active.
+
+| Session | Topic | Exercise | Answer |
+|---|---|---|---|
+| 3 | Pandas and Working with Data | [session_03_exercise.py](exercises/session_03_exercise.py) | [session_03_answer.py](exercises/session_03_answer.py) |
+| 4 | Merging the Three Sources | [session_04_exercise.py](exercises/session_04_exercise.py) | [session_04_answer.py](exercises/session_04_answer.py) |
+| 5 | Aggregations and Summary Statistics | [session_05_exercise.py](exercises/session_05_exercise.py) | [session_05_answer.py](exercises/session_05_answer.py) |
+| 6 | Creating Visualizations | [session_06_exercise.py](exercises/session_06_exercise.py) | [session_06_answer.py](exercises/session_06_answer.py) |
+| 7 | Generating the Excel Report | [session_07_exercise.py](exercises/session_07_exercise.py) | [session_07_answer.py](exercises/session_07_answer.py) |
+| 8 | Connecting to the Database ¹ | [session_08_exercise.py](exercises/session_08_exercise.py) | [session_08_answer.py](exercises/session_08_answer.py) |
+| 9 | Working with Database Results ¹ | [session_09_exercise.py](exercises/session_09_exercise.py) | [session_09_answer.py](exercises/session_09_answer.py) |
+| 10 | Calling a Web API | [session_10_exercise.py](exercises/session_10_exercise.py) | [session_10_answer.py](exercises/session_10_answer.py) |
+| 11 | Working with API Results | [session_11_exercise.py](exercises/session_11_exercise.py) | [session_11_answer.py](exercises/session_11_answer.py) |
+
+¹ GSU network required (on-campus WiFi or VPN).
 
 ---
 

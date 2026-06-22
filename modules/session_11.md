@@ -191,7 +191,7 @@ In Session 12, `main.py` wires all four modules together. `db.py` and `api.py` r
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_11_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_11_answer.py`.
+The starter script is at [`exercises/session_11_exercise.py`](../exercises/session_11_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_11_answer.py`](../exercises/session_11_answer.py).
 
 Run from the repo root:
 

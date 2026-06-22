@@ -188,7 +188,7 @@ In Session 7, we add `save_excel_report()` to `report.py`: a function that write
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_06_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_06_answer.py`.
+The starter script is at [`exercises/session_06_exercise.py`](../exercises/session_06_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_06_answer.py`](../exercises/session_06_answer.py).
 
 Run from the repo root:
 

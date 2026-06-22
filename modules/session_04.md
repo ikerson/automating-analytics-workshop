@@ -257,7 +257,7 @@ In Session 5, we add three aggregation functions to `transform.py`: summaries by
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_04_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_04_answer.py`.
+The starter script is at [`exercises/session_04_exercise.py`](../exercises/session_04_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_04_answer.py`](../exercises/session_04_answer.py).
 
 Run from the repo root:
 

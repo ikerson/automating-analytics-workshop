@@ -234,7 +234,7 @@ def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_07_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_07_answer.py`.
+The starter script is at [`exercises/session_07_exercise.py`](../exercises/session_07_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_07_answer.py`](../exercises/session_07_answer.py).
 
 Run from the repo root:
 

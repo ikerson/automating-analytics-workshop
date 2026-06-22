@@ -267,7 +267,7 @@ In Session 10, we shift to the API side of the data flow. `db.py` stays exactly 
 >
 > **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
-The starter script is at `exercises/session_09_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_09_answer.py`.
+The starter script is at [`exercises/session_09_exercise.py`](../exercises/session_09_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_09_answer.py`](../exercises/session_09_answer.py).
 
 Run from the repo root:
 

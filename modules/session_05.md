@@ -246,7 +246,7 @@ In Session 6, we build `report.py` v1: the two chart functions that visualize th
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at `exercises/session_05_exercise.py`. It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at `exercises/session_05_answer.py`.
+The starter script is at [`exercises/session_05_exercise.py`](../exercises/session_05_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_05_answer.py`](../exercises/session_05_answer.py).
 
 Run from the repo root:
 
