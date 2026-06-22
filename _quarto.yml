@@ -1,0 +1,56 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Automating Data Analytics with Python"
+  author:
+    - "Isaac Kerson"
+    - "Christopher Carbonaro"
+    - "Mackenzie DeForest"
+    - "William McQueen"
+  chapters:
+    - index.md
+    - part: "Setup"
+      chapters:
+        - modules/session_00.md
+        - modules/session_01.md
+        - modules/session_02.md
+    - part: "Phase 1: Working with Provided Data"
+      chapters:
+        - modules/session_03.md
+        - modules/session_04.md
+        - modules/session_05.md
+        - modules/session_06.md
+        - modules/session_07.md
+    - part: "Phase 2: Automating Data Collection"
+      chapters:
+        - modules/session_08.md
+        - modules/session_09.md
+        - modules/session_10.md
+        - modules/session_11.md
+    - part: "Capstone"
+      chapters:
+        - modules/session_12.md
+    - part: "Optional"
+      chapters:
+        - modules/session_13.md
+    - part: "Exercises"
+      chapters:
+        - exercises/session_03.md
+        - exercises/session_04.md
+        - exercises/session_05.md
+        - exercises/session_06.md
+        - exercises/session_07.md
+        - exercises/session_08.md
+        - exercises/session_09.md
+        - exercises/session_10.md
+        - exercises/session_11.md
+
+format:
+  html:
+    theme:
+      light: default
+      dark: darkly
+    number-sections: false
+    toc-expand: 2
