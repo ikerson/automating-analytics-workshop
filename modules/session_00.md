@@ -24,38 +24,7 @@ This workshop uses four tools. Each one has a specific job; none of them overlap
 
 ### How They Connect
 
-::: {.content-visible when-format="html"}
 ![Tool stack diagram showing VS Code, Git Bash, conda environment, Git, and GitHub and how they connect](../diagrams/tool_stack.png)
-:::
-
-::: {.content-hidden when-format="html"}
-```mermaid
-flowchart LR
-    subgraph vscode["VS Code — Your Workspace"]
-        Editor["editor\nwrite .py files"]
-        GitBash["Git Bash\nbuilt-in terminal"]
-    end
-
-    subgraph run["Run"]
-        Env["conda environment\nstudent-report\nPython + packages"]
-    end
-
-    subgraph output["Output"]
-        Reports["reports/\n.csv  .png  .xlsx"]
-    end
-
-    subgraph track["Save & Share"]
-        Git["Git\nversion control"]
-        GitHub["GitHub\ncloud storage"]
-    end
-
-    GitBash -->|"conda activate\npython main.py"| Env
-    Env -->|"pipeline produces"| Reports
-    GitBash -->|"git commit\ngit push"| Git
-    Git -->|"push"| GitHub
-    GitHub -->|"fork & clone"| GitBash
-```
-:::
 
 You write Python files in the VS Code editor. Git Bash — running as the built-in terminal inside VS Code — is where you type commands. Those commands activate the conda environment to run your code, produce the output files, and save your work to Git and GitHub.
 
