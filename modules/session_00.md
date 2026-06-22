@@ -24,7 +24,7 @@ This workshop uses four tools. Each one has a specific job; none of them overlap
 
 ### How They Connect
 
-```{mermaid}
+```mermaid
 flowchart LR
     subgraph vscode["VS Code — Your Workspace"]
         Editor["editor\nwrite .py files"]
