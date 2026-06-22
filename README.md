@@ -2,6 +2,8 @@
 
 This workshop is designed for GSU analysts who want to replace a time-consuming manual reporting workflow with a single Python command. Over twelve one-hour sessions, participants build a working Python package from scratch — connecting to an Oracle database, calling a web API, merging and summarizing data, and producing charts and an Excel workbook automatically. Session 13 (optional) introduces unit testing.
 
+**[Read the workshop book →](https://GSU-Analytics.github.io/automating-analytics-workshop/)**
+
 The finished product:
 
 ```
