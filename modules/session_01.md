@@ -14,9 +14,9 @@ This first session is an orientation. You will see the finished tool run live, u
 
 ### Honest Expectations
 
-This workshop is designed for people with no previous Python or coding experience — you do not need any prior background to participate. That said, beginner-friendly does not mean easy.
+This workshop is designed for people with no previous Python or coding experience. You do not need any prior background to participate. That said, beginner-friendly does not mean easy.
 
-We are building a real-world automated data pipeline. That is a complex process with many moving parts: a database, a web API, data transformation logic, charts, and an Excel report — all wired together and run from a single command. You will encounter concepts that take time to absorb, and some things will not click on the first pass. That is expected and completely normal.
+We are building a real-world automated data pipeline. That is a complex process with many moving parts: a database, a web API, data transformation logic, charts, and an Excel report that are all wired together and run from a single command. You will encounter concepts that take time to absorb, and some things will not click on the first pass. That is expected and completely normal.
 
 The learning curve is steep. The payoff is high.
 
@@ -27,10 +27,10 @@ Sessions follow a code-along format: the instructor introduces code, you follow 
 A few things to keep in mind:
 
 - **Sessions build on each other.** Missing a session or falling behind makes the next one harder. Attendance and keeping pace matter more in a cumulative build than in a standalone class.
-- **We are moving quickly.** This workshop introduces many tools and concepts — conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl — without going deep on any of them. The goal is exposure and a working mental model, not mastery.
+- **We are moving quickly.** This workshop introduces many tools and concepts such as conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl without going deep on any of them. The goal is exposure and a working mental model, not mastery.
 - **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment.
 - **You will not understand everything the first time.** That is normal. The materials are designed to be returned to.
-- **If you fall behind, you can catch up.** Every session is typed from scratch, so there is no per-session sync step to remember. To catch up, open the module for the session you missed — each one ends with the complete version of the file it builds. Copy that code into your fork and you can rejoin at the next session.
+- **If you fall behind, you can catch up.** Every session is typed from scratch, so there is no per-session sync step to remember. To catch up, open the module for the session you missed. Each module ends with the complete version of the file it builds. Copy that code into your fork and you can rejoin at the next session.
 
 ### What We Do Not Expect
 
@@ -81,7 +81,7 @@ The problems stack up:
 
 This workshop replaces the manual process in two deliberate phases.
 
-**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo — enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website and email. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
+**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo: enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website and email. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
 
 **Phase 1 — provided CSV files**
 
@@ -114,7 +114,7 @@ data/enrollment.csv    data/survey_middle_schools.csv  data/schools.csv
                                 - Charts
 ```
 
-**Phase 2 (Sessions 8–11):** You will build the code that automates where those CSV files come from — a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 12, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
+**Phase 2 (Sessions 8–11):** You will build the code that automates where those CSV files come from: a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 12, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
 
 **Phase 2 — automated pipeline**
 
@@ -147,7 +147,6 @@ Oracle EC2                    survey CSV                Urban Institute API
                                 - Charts
 ```
 
-This two-step structure is intentional. Phase 1 delivers the payoff immediately. Phase 2 explains the plumbing that makes it fully automatic. The transform and report code you write in Phase 1 is exactly what the automated pipeline calls in Session 12. Nothing gets thrown away.
 
 ---
 
@@ -176,7 +175,7 @@ The same command runs every month. The output is identical in structure every ti
 
 Your instructor will run `python main.py --year 2019 --output reports/` live. As you watch, notice:
 
-1. **The terminal output** — each step prints what it is doing and how many records it found. No silent failures.
+1. **The terminal output** — each step prints what it is doing and how many records it found.
 2. **The output folder** — four files appear in `reports/` within about a minute.
 3. **The Excel workbook** — open `student_report.xlsx` and click through the five sheets. Everything the manual process produced, in one file.
 4. **The source code** — the instructor will briefly scroll through the five Python files that make this work. You are going to write all of this yourself.

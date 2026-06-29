@@ -4,7 +4,7 @@
 
 You should have your tools installed and your fork created. This session connects everything: you will clone your fork to your computer, create the conda environment that all remaining sessions depend on, and run your first Python script inside VS Code. By the end, you will have made your first commit and push to GitHub.
 
-This session has two parts. **Steps 1–3** set up your environment — these must be working before any later session, so if you get stuck here, ask for help right away. **Step 4** walks through the Git commit-and-push workflow you will repeat each week; if you run low on time, you can finish it at office hours without falling behind.
+This session has two parts. **Steps 1–3** set up your environment. Steps 1-3 must be working before any later session, so if you get stuck here, ask for help right away. **Step 4** walks through the Git commit-and-push workflow you will repeat each week; if you run low on time, you can finish it at office hours without falling behind.
 
 ---
 
@@ -22,7 +22,7 @@ VS Code has four areas you will use in every session.
 
 **Terminal** (bottom panel, `` Ctrl+` ``) is the built-in command line. This is where you run Python scripts, activate conda environments, and execute Git commands. All terminal commands in this workshop are typed here.
 
-**Source Control** (left sidebar, `Ctrl+Shift+G`) is the Git interface. It shows which files have changed since your last commit. You can stage, commit, and review diffs here — though this workshop will use Git commands in the terminal instead.
+**Source Control** (left sidebar, `Ctrl+Shift+G`) is the Git interface. It shows which files have changed since your last commit. You can stage, commit, and review diffs here, although this workshop will use Git commands in the terminal instead.
 
 ---
 
@@ -219,7 +219,7 @@ Visit `https://github.com/YOUR-USERNAME/automating-analytics-workshop` — you s
 | VS Code using the correct Python interpreter | ✓ |
 | First commit and push to GitHub | ✓ |
 
-This setup carries through every remaining session. You will activate `student-report`, open the terminal in VS Code, write code, and commit — the same loop each time.
+This setup carries through every remaining session. You will activate `student-report`, open the terminal in VS Code, write code, and commit. This will be the same loop each time.
 
 ---
 
