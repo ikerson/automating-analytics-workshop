@@ -6,10 +6,6 @@ The pipeline works. Session 13 asks: how do we know it will keep working? Unit t
 
 This session is optional. Skip it if time does not allow; the pipeline is complete without it.
 
-Reference: Prior sessions — Sessions 4–7 (`transform.py` and `report.py` are the modules under test)
-
----
-
 ## Setting Up
 
 Open VS Code and activate your conda environment in the terminal.
@@ -18,7 +14,7 @@ In the Explorer pane, expand `student_report/` and then `tests/` to see the test
 
 In the terminal:
 
-```
+```zsh
 conda activate student-report
 ```
 
@@ -32,8 +28,6 @@ pytest student_report/tests/ -v
 
 You should see 12 tests collected and all passing. If any fail, check that the conda environment is active and that `student_report/` contains the completed `transform.py` and `report.py` files from prior sessions.
 
----
-
 ## Why Test?
 
 The pipeline merges data from three sources and runs a chain of transformations. If `merge_data()` stops normalizing `ncessch` correctly, the join silently produces zero matches — and the report is wrong with no error message. If `save_top_schools_chart()` fails to close the figure, memory usage grows with every run. These are bugs that would be invisible until someone noticed the output looked wrong.
@@ -41,8 +35,6 @@ The pipeline merges data from three sources and runs a chain of transformations.
 Unit tests are functions that call your code with known inputs and assert that the output matches what you expect. A passing test suite is evidence that each function works in isolation. When you add a feature or change a function, re-running the tests tells you immediately if something broke.
 
 The tests in this project cover `transform.py` and `report.py`. `db.py` and `api.py` are excluded because their behavior depends on live external systems — a database connection and a network call — which are outside the scope of unit testing.
-
----
 
 ## Pytest Basics
 
@@ -63,8 +55,6 @@ pytest student_report/tests/ -v
 ```
 
 `-v` (verbose) prints one line per test with its name and result, rather than just a dot per test.
-
----
 
 ## The Test Files
 
@@ -112,8 +102,6 @@ def test_get_students_deduplicates(enrollment_df):
 The `enrollment_df` fixture builds a small DataFrame: two students, but student 1 appears twice (two enrollments). The test calls `get_students()` and asserts the result has exactly 2 rows — confirming deduplication works.
 
 Fixtures keep test data defined once and reused across multiple tests. If the expected input format ever changes, you update the fixture and every test that uses it reflects the change automatically.
-
----
 
 ## test_transform.py — Walkthrough
 
@@ -185,8 +173,6 @@ def test_summarize_top_schools_columns(enrollment_df, survey_df, school_df):
 
 The three summarize tests follow the same pattern: build the merged DataFrame from fixtures, call the function, and check that the result has the expected columns and shape. They do not assert specific values because the aggregate results are fully determined by the fixture data — checking columns and row count is sufficient to confirm the functions produce the right structure.
 
----
-
 ## test_report.py — Walkthrough
 
 `test_report.py` has one additional setup line not present in `test_transform.py`:
@@ -224,8 +210,6 @@ def test_save_excel_report_sheets(merged_df, top_schools_df, zip_summary_df, siz
 ```
 
 This test calls `save_top_schools_chart()` and `save_size_chart()` first to produce real PNG files, then passes those paths to `save_excel_report()`. After the function returns, it opens the workbook with `openpyxl` and asserts the sheet names match exactly — in the correct order. If a sheet is missing, renamed, or created in the wrong order, this assertion fails.
-
----
 
 ## Running the Tests
 
@@ -267,8 +251,6 @@ Run a single test by name:
 ```bash
 pytest student_report/tests/test_transform.py::test_merge_data_zip_padding -v
 ```
-
----
 
 ## Additional Resources
 

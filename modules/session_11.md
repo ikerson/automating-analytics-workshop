@@ -4,17 +4,13 @@
 
 Session 10 called the CCD school directory API and confirmed the data is accessible. The result DataFrame has over 50 columns — far more than the pipeline needs. This session builds `api.py` v2: we define the 9 columns the pipeline uses, wrap the API call in a function, and verify the result. The pattern mirrors what we did in Session 9 for `db.py`: exploration code becomes a clean, importable module.
 
-Reference: Prior session — Session 10
-
----
-
 ## Setting Up
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/api.py`. This is the exploration file you built in Session 10.
 
 In Git Bash:
 
-```
+```zsh
 conda activate student-report
 ```
 
@@ -40,8 +36,6 @@ print(df.columns.tolist())
 ```
 
 Today we replace this with a function that returns only the columns the pipeline needs.
-
----
 
 ## Building api.py v2
 
@@ -142,15 +136,11 @@ if __name__ == '__main__':
 
 Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 4 will handle normalizing them.
 
----
-
 ## What Changes if the API Is Different?
 
 The pipeline uses the `ccd_directory` endpoint for 2019. Swapping years is a one-character change — pass a different `year` to `get_school_data()`. The column list stays valid as long as the endpoint schema does not change across years.
 
 If a column is ever renamed or removed by the API, `df[CCD_COLUMNS]` will raise a `KeyError`. That error is the right behavior — a silent mismatch would be worse. When that happens, run `df.columns.tolist()` to inspect what the API currently returns and update `CCD_COLUMNS` accordingly.
-
----
 
 ## api.py v2 — Complete File
 
@@ -184,8 +174,6 @@ def get_school_data(year):
 > **Note:** `student_report/data/schools.csv` is a pre-committed static file generated from this function. Once `api.py` is wired into `main.py` in Session 12, every pipeline run regenerates it automatically — the static file is no longer needed for day-to-day use.
 
 In Session 12, `main.py` wires all four modules together. `db.py` and `api.py` replace the static files in `student_report/data/` and the pipeline runs end-to-end from a single command.
-
----
 
 ## Practice Exercise
 

@@ -56,3 +56,4 @@ format:
       dark: darkly
     number-sections: false
     toc-expand: 2
+    code-annotations: below

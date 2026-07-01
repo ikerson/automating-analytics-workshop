@@ -4,10 +4,6 @@
 
 Sessions 4–7 built the data transformation and reporting modules (`transform.py` and `report.py`). Sessions 8–11 built the data collection modules (`db.py` and `api.py`). Each module has been tested individually. This session builds `main.py`: a short script that imports all four modules and calls them in sequence, turning the manual multi-step process into a single command.
 
-Reference: Prior sessions — Sessions 4–11 (all modules)
-
----
-
 ## Setting Up
 
 Open VS Code and activate your conda environment in the terminal.
@@ -16,15 +12,13 @@ In the Explorer pane, right-click the `student_report/` folder and choose **New 
 
 In the terminal:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
 > **GSU network required.** `main.py` calls `get_enrollment()` from `db.py`, which connects to the Oracle server on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN first.
-
----
 
 ## Building main.py
 
@@ -157,8 +151,6 @@ Namespace(year=2019, output='reports/')
 
 **`if __name__ == "__main__":`** — this guard ensures the argparse block only runs when `main.py` is executed directly. When another script does `from main import something`, this block is skipped — which prevents argparse from trying to read command-line arguments at import time.
 
----
-
 ## Running the Pipeline
 
 Run the complete pipeline from the repo root:
@@ -201,8 +193,6 @@ To see all available options:
 ```bash
 python student_report/main.py --help
 ```
-
----
 
 ## main.py — Complete File
 
@@ -271,8 +261,6 @@ if __name__ == "__main__":
     main(args)
 ```
 
----
-
 ## What's Next
 
 The pipeline now runs end-to-end with a single command. A few directions to consider from here:
@@ -288,8 +276,6 @@ On Windows, Task Scheduler provides scheduling through a GUI. Create a new task,
 ```bash
 pytest student_report/tests/ -v
 ```
-
----
 
 ## Additional Resources
 

@@ -4,10 +4,6 @@
 
 Three CSV files are already in `student_report/data/`: enrollment data, a CCD school directory, and a survey linking students to the middle schools they attended. This session builds `transform.py` v1 — two functions that merge all three sources into a single DataFrame with one row per student, enriched with middle school name, city, ZIP, and enrollment size.
 
-Reference: Prior session — Session 3
-
----
-
 ## Setting Up
 
 Open VS Code and activate your conda environment in the terminal.
@@ -16,15 +12,13 @@ In the Explorer pane, right-click the `student_report/` folder and choose **New 
 
 In the terminal:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
 > **No VPN or prior sessions required.** All three CSV files are pre-committed to `student_report/data/` — no setup steps needed beyond activating the conda environment.
-
----
 
 ## The Three Sources
 
@@ -39,8 +33,6 @@ Before writing any code, it helps to know exactly what each dataset contributes 
 The survey CSV is the bridge: it holds each student's `student_id` and the `ncessch` (NCES school ID) of the middle school they attended. A student appears in the enrollment data even if they did not fill out the survey — in that case, no school information will be available and the merge will produce `NaN` values for all school columns.
 
 The enrollment and school directory CSVs represent data that would normally require a database query and an API call to obtain. For now they are provided as static files; Sessions 8–11 build the code that generates them automatically.
-
----
 
 ## Building transform.py v1
 
@@ -119,21 +111,39 @@ def merge_data(students_df, survey_df, school_df):
     return merged
 ```
 
-Walk through each section:
+Let's look at each section of this code block.
 
-**Defensive copies** — The three `.copy()` calls at the top prevent the normalization steps from modifying the DataFrames that were passed in. This makes the function safe to call multiple times or from a test.
+#### Defensive copies
 
-**Normalization** — The four assignment lines normalize the join key columns as described above. The normalization happens before the merge so both sides have matching formats.
+The three `.copy()` calls at the top prevent the normalization steps from modifying the DataFrames that were passed in. This makes the function safe to call multiple times or from a test.
 
-**First merge — students → survey** — `students_df.merge(survey_df, on='student_id', how='left')` joins on `student_id`. `how='left'` keeps every row from `students_df`. Students who have a survey response get `middle_school_name` and `ncessch` from the survey. Students with no survey response get `NaN` in those columns.
+#### Normalization
 
-**Second merge — result → CCD** — `merged.merge(school_df, on='ncessch', how='left')` joins the result of the first merge to the CCD school directory on `ncessch`. Students who matched the survey and whose `ncessch` exists in the CCD data get all the school columns (`school_name`, `city_location`, `zip_mailing`, `enrollment`, etc.). Students with no survey match — and therefore no `ncessch` — still get `NaN` for all school columns.
+The four assignment lines normalize the join key columns as described above. The normalization happens before the merge so both sides have matching formats.
+
+#### First merge — students → survey
+
+`students_df.merge(survey_df, on='student_id', how='left')` joins on `student_id`. `how='left'` keeps every row from `students_df`. Students who have a survey response get `middle_school_name` and `ncessch` from the survey. Students with no survey response get `NaN` in those columns.
+
+#### Second merge — result → CCD
+
+`merged.merge(school_df, on='ncessch', how='left')` joins the result of the first merge to the CCD school directory on `ncessch`. Students who matched the survey and whose `ncessch` exists in the CCD data get all the school columns (`school_name`, `city_location`, `zip_mailing`, `enrollment`, etc.). Students with no survey match — and therefore no `ncessch` — still get `NaN` for all school columns.
 
 The final result is one row per student, with school data where available.
 
 ### Testing with a __main__ block
 
-Add a `if __name__ == '__main__':` block to load the CSV files from prior sessions and test the two functions:
+Add an `if __name__ == '__main__':` block to load the CSV files from prior sessions and test the two functions:
+
+::: {.callout-note title="What on earth is `__name__` and `'__main__'`?" collapse="true"}
+`__name__` is a special variable in Python:
+
+- If the code is in an imported module, it will be the name of the module
+- If the code is in the script you are running, it will equal `'__main__'`
+
+This means that you can have a block of code that only runs if you are running the file as a script. Anything in the code block will *not* be run if you import the module.
+:::
+
 
 ```python
 if __name__ == '__main__':
@@ -211,8 +221,6 @@ if __name__ == '__main__':
 
 Run again and open `student_report/reports/merged.csv`. Each row is one student. The school columns are populated where a survey match and a CCD match both exist, and `NaN` otherwise.
 
----
-
 ## transform.py v1 — Complete File
 
 Remove the `if __name__ == '__main__':` block. The final `transform.py` v1 defines one import and two functions:
@@ -250,8 +258,6 @@ def merge_data(students_df, survey_df, school_df):
 `main.py` (Session 12) will call these functions by importing `transform.py`. There is no top-level code after the import, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
 
 In Session 5, we add three aggregation functions to `transform.py`: summaries by school, by ZIP, and by school size — plus `pd.cut()` to bucket school enrollment into Small / Medium / Large.
-
----
 
 ## Practice Exercise
 

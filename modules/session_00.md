@@ -6,8 +6,6 @@ This document walks you through everything you need to do before Session 1. By t
 
 Complete these steps on your own before the first session. If you run into problems, see the [Getting Help](#getting-help) section at the bottom.
 
----
-
 ## The Tool Stack
 
 This workshop uses five tools. Each one has a specific job; none of them overlap. You do not need to install Python separately. Python comes bundled with Miniconda.
@@ -28,8 +26,6 @@ This workshop uses five tools. Each one has a specific job; none of them overlap
 
 You write Python files in the VS Code editor. Git Bash, running as the built-in terminal inside VS Code, is where you type commands. Those commands activate the conda environment to run your code, produce the output files, and save your work to Git and GitHub.
 
----
-
 ## A Note on GSU Managed Machines
 
 These tools should install on GSU-managed computers without administrator credentials. If an installer asks for a password you do not have, double-check that you are following the steps correctly.
@@ -37,8 +33,6 @@ These tools should install on GSU-managed computers without administrator creden
 If the prompt persists, contact the [GSU Technology Help Desk](https://technology.gsu.edu/about/contact/) and ask them to install Miniconda, Git, and VS Code before Session 1.
 
 Allow **30–60 minutes** for the full setup, not including any IT wait time.
-
----
 
 ## Installation Steps
 
@@ -52,14 +46,12 @@ Miniconda installs both `conda` and Python. You do not need to install Python se
 2. Run the installer. When you reach the **Advanced Installation Options** screen, check **"Add Miniconda3 to your PATH environment variable."** Accept all other defaults.
 3. Click **Install**, then **Finish**.
 4. Open a new **Command Prompt** (`Win + R`, type `cmd`, press Enter) and run:
-   ```
+   ```zsh
    conda --version
    ```
    You should see output like `conda 24.x.x`. If you see an error, re-run the installer and confirm the PATH option was checked.
 
 > **Video walkthrough:** [Downloading and Installing Miniconda3](https://www.youtube.com/watch?v=-H_onyfW9VE)
-
----
 
 ### Step 2 — GitHub Account
 
@@ -69,8 +61,6 @@ Miniconda installs both `conda` and Python. You do not need to install Python se
 
 You do not need a paid plan or an organization account. A free personal account is all that is required.
 
----
-
 ### Step 3 — Git and Git Bash
 
 Git Bash is included automatically with the Git for Windows installer. There is no separate download needed.
@@ -79,23 +69,25 @@ Git Bash is included automatically with the Git for Windows installer. There is 
 2. Run the installer. Accept all default options on every screen. On the **Choosing the terminal emulator** screen, confirm that **"Use MinTTY (the default terminal of MSYS2)"** is selected. (This is Git Bash)
 3. Click **Install**, then **Finish**.
 4. Open a new **Command Prompt** and run:
-   ```
+
+   ```zsh
    git --version
    ```
+
    You should see output like `git version 2.x.x`.
 
 #### Configure Git
 
 Git needs your name and email to label your commits. Run these two commands in Git Bash, replacing the values with your own name and the email address you used to create your GitHub account:
 
-```
+```zsh
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
 Verify the settings saved:
 
-```
+```zsh
 git config --list
 ```
 
@@ -103,17 +95,17 @@ You should see `user.name` and `user.email` in the output.
 
 > **Video walkthrough:** [Installing Git on Windows](https://youtu.be/4xqVv2lTo40?si=GVTTywH1x-hzSGE6&t=33)
 
----
-
 ### Step 4 — Visual Studio Code
 
 1. Download the **Windows** installer from the [VS Code download page](https://code.visualstudio.com/download).
 2. Run the installer and accept all default options.
 3. **Reboot your computer** before continuing.
 4. Open a new **Command Prompt** and run:
-   ```
+
+   ```zsh
    code --version
    ```
+
    You should see a version number on the first line (e.g., `1.9x.x`).
 
 #### Set Git Bash as the built-in terminal
@@ -140,8 +132,6 @@ If the extension is already installed, you will see a gear icon instead of an In
 
 > **Video walkthrough:** [Installing VSCode on Windows](https://www.youtube.com/watch?v=CPmQwlycfGI)
 
----
-
 ## Setup Checks
 
 Before Session 1, confirm all three tools are working. Open **Git Bash** (search for "Git Bash" in the Windows Start menu) and run each command:
@@ -156,8 +146,6 @@ Before Session 1, confirm all three tools are working. Open **Git Bash** (search
 Running these checks in Git Bash, rather than Command Prompt, also confirms that Git Bash itself is working correctly.
 
 If any command returns an error or `command not found`, see [Getting Help](#getting-help) below before Session 1.
-
----
 
 ## Fork the Workshop Repo
 
@@ -174,8 +162,6 @@ https://github.com/YOUR-USERNAME/automating-analytics-workshop
 
 **Stop here.** You will clone your fork to your computer at the start of Session 2, under instructor guidance.
 
----
-
 ## Getting Help
 
 If setup is not complete before Session 1, bring your laptop and let the instructor know at the start of the session.
@@ -188,15 +174,11 @@ If setup is not complete before Session 1, bring your laptop and let the instruc
 
 **Teams channel:** The workshop has a dedicated Microsoft Teams channel for questions, troubleshooting, and announcements. Join before Session 1 so you have a place to ask for help with setup. [Join the Teams chat here](https://teams.microsoft.com/l/chat/19:4d970a6b3f7e4a53befaa7528a3b4e70@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D).
 
----
-
 ## VPN (Off-Campus Only)
 
 VPN is **not required** during workshop sessions. When you are on campus and connected to GSU WiFi, your computer is already within the GSU network and can reach the training database used in Sessions 8 and 9.
 
 If you plan to work on exercises off-campus, you will need to connect via VPN first. Setup instructions are on the [GSU Technology — Virtual Private Network](https://technology.gsu.edu/technology-services/cybersecurity/virtual-private-network/) page.
-
----
 
 ## Additional Resources
 

@@ -4,11 +4,7 @@
 
 Session 8 confirmed the Oracle connection works and ran a single-table query. This session builds `db.py` v2: we replace the top-level exploration code with a five-table enrollment JOIN wrapped in a reusable function, and normalize the column names so the rest of the pipeline can use them consistently. The finished `db.py` is a module — it defines a function rather than running code at the top level — so it can be safely imported in later sessions without triggering a database query.
 
-Reference: Prior session — Session 8
-
 > **GSU network required.** The Oracle server is only reachable on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN before starting the code-along and before running the practice exercise.
-
----
 
 ## Setting Up
 
@@ -16,7 +12,7 @@ Open VS Code, activate your conda environment in the terminal, and open `student
 
 In Git Bash:
 
-```
+```zsh
 conda activate student-report
 ```
 
@@ -40,8 +36,6 @@ print(df.info())
 ```
 
 The lines after `load_dotenv(...)` are top-level statements — they run every time this file is imported by another script, not just when you run it directly. That was fine for exploring the connection in Session 8. Today we restructure `db.py` so it defines a function instead of running code, and replace the single-table query with the full enrollment data we actually need.
-
----
 
 ## The Enrollment Query
 
@@ -79,8 +73,6 @@ JOIN course     c ON sec.COURSE_NO = c.COURSE_NO
 ```
 
 This is the query the pipeline uses. Each alias (`s`, `z`, `e`, `sec`, `c`) is shorthand for the table name — `s.STUDENT_ID` means the `STUDENT_ID` column from the `student` table. The `JOIN ... ON` clauses link each pair of tables on their shared key column.
-
----
 
 ## Building db.py v2
 
@@ -213,8 +205,6 @@ python student_report/db.py
 
 Open `student_report/reports/enrollment.csv` in VS Code or Excel and verify that the column names are lowercase and the data looks correct. This file is in `reports/`, which is gitignored — it is generated output, not source code.
 
----
-
 ## db.py v2 — Complete File
 
 When you are finished exploring, remove the `if __name__ == '__main__':` block. Before deleting the block, make sure you have run `python student_report/db.py` at least once and confirmed `enrollment.csv` was saved. The final `db.py` defines one constant and one function:
@@ -258,8 +248,6 @@ def get_enrollment():
 > **Note:** `student_report/data/enrollment.csv` is a pre-committed static file generated from this function. Once `db.py` is wired into `main.py` in Session 12, every pipeline run regenerates it automatically from the live Oracle database — the static file is no longer needed for day-to-day use.
 
 In Session 10, we shift to the API side of the data flow. `db.py` stays exactly as it is.
-
----
 
 ## Practice Exercise
 

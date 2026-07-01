@@ -4,25 +4,19 @@
 
 Session 4 produced a merged DataFrame: one row per student, enriched with their middle school's name, city, ZIP, and enrollment figure where a survey match existed. The data is now ready to summarize. This session builds `transform.py` v2: four additions — an enrollment size bucket column added to `merge_data()`, and three new functions that compute the summaries the report needs. At the end of this session, `transform.py` is complete.
 
-Reference: Prior session — Session 4
-
----
-
 ## Setting Up
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/transform.py`.
 
 In Git Bash:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
 > **No VPN or prior sessions required.** All three CSV files are pre-committed to `student_report/data/` — no setup steps needed beyond activating the conda environment.
-
----
 
 ## Building transform.py v2
 
@@ -49,19 +43,17 @@ def merge_data(students_df, survey_df, school_df):
     merged = merged.merge(school_df, on='ncessch', how='left')
 
     merged['school_size'] = pd.cut(
-        merged['enrollment'],
-        bins=[0, 300, 700, float('inf')],
-        labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
+        merged['enrollment'], # <1>
+        bins=[0, 300, 700, float('inf')], # <2>
+        labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'], # <3>
     )
 
     return merged
 ```
 
-Walk through the `pd.cut()` call:
-
-- **`merged['enrollment']`** — the input series. Students with no survey match have `NaN` enrollment; `pd.cut()` leaves those rows as `NaN` in the output column.
-- **`bins=[0, 300, 700, float('inf')]`** — three intervals: (0, 300], (300, 700], (700, ∞). Each value in the list is the right edge of the bin it closes.
-- **`labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)']`** — one label per bin. The result is a pandas `Categorical` column — a dtype that stores a fixed, ordered set of possible values rather than arbitrary strings.
+1. The input series. Students with no survey match have `NaN` enrollment; `pd.cut()` leaves those rows as `NaN` in the output column.
+2. Three intervals: (0, 300], (300, 700], (700, ∞). Each value in the list is the right edge of the bin it closes.
+3. One label per bin. The result is a pandas `Categorical` column — a dtype that stores a fixed, ordered set of possible values rather than arbitrary strings.
 
 The new `school_size` column travels with the DataFrame into the summarize functions below.
 
@@ -165,8 +157,6 @@ python student_report/transform.py
 
 The top schools table shows the 10 middle schools with the highest student counts, ranked largest first. The size summary should show three rows — one per bucket — with no empty categories. If a `FutureWarning` appears, verify that `observed=True` is present in `summarize_by_size()`.
 
----
-
 ## transform.py v2 — Complete File
 
 Remove the `if __name__ == '__main__':` block. The final `transform.py` defines one import and five functions:
@@ -239,8 +229,6 @@ def summarize_by_size(merged_df):
 `transform.py` is now complete. `main.py` (Session 12) will call all five functions by importing this module. There is no top-level code after the import, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
 
 In Session 6, we build `report.py` v1: the two chart functions that visualize the top schools and size distribution summaries.
-
----
 
 ## Practice Exercise
 

@@ -6,7 +6,10 @@ This session is a one-hour primer on core Python before you touch pandas, Oracle
 
 By the end you should be able to read a `.py` file and explain, line by line, what it does: what gets imported, what kind of data each variable holds, the order the lines execute in, what a function call is doing, how a loop or an `if` branches the flow, and how to look something up in a list, set, or dictionary.
 
-Reference: Source material — [*Automate the Boring Stuff with Python*, 3rd Edition](https://automatetheboringstuff.com/), Chapters 1–7. This session is a summary, not a replacement — the full chapters are worth reading on your own time.
+:::{.callout-note}
+### Reference
+Source material [*Automate the Boring Stuff with Python*, 3rd Edition](https://automatetheboringstuff.com/), Chapters 1–7. This session is a summary, not a replacement — the full chapters are worth reading on your own time.
+:::
 
 ## Setting Up
 

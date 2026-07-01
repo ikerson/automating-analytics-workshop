@@ -8,17 +8,26 @@ This workshop replaces that process with a single Python command. By the end of 
 
 This first session is an orientation. You will see the finished tool run live, understand what each piece of the stack does, and learn how the workshop is organized.
 
----
-
 ## Teaching Approach
 
-### Honest Expectations
+### Goals and Expectations
 
-This workshop is designed for people with no previous Python or coding experience. You do not need any prior background to participate. That said, beginner-friendly does not mean easy.
+This workshop is designed for people with no previous Python or coding experience. You do not need any prior background to participate.
 
-We are building a real-world automated data pipeline. That is a complex process with many moving parts: a database, a web API, data transformation logic, charts, and an Excel report that are all wired together and run from a single command. You will encounter concepts that take time to absorb, and some things will not click on the first pass. That is expected and completely normal.
+:::{.callout-warning title="Beginner-friendly does not mean easy!"}
+We are building a real-world automated data pipeline. That is a complex process with many moving parts, including:
 
-The learning curve is steep. The payoff is high.
+- a database
+- a web API
+- data transformation logic
+- charts
+- an Excel report
+
+All of these pieces will be wired together and run from a single command. You will encounter concepts that take time to absorb, and some things will not click on the first pass. That is expected and completely normal.
+
+Don't get frustrated if you encounter many concepts that you don't understand. Be patient, ask questions, and be prepared to think deeply. The payoff is immense.
+:::
+
 
 ### How This Workshop Teaches
 
@@ -27,14 +36,17 @@ Sessions follow a code-along format: the instructor introduces code, you follow 
 A few things to keep in mind:
 
 - **Sessions build on each other.** Missing a session or falling behind makes the next one harder. Attendance and keeping pace matter more in a cumulative build than in a standalone class.
-- **We are moving quickly.** This workshop introduces many tools and concepts such as conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl without going deep on any of them. The goal is exposure and a working mental model, not mastery.
+- **We are moving quickly.** This workshop introduces many tools and concepts such as conda, Git, Oracle, REST APIs, pandas, matplotlib, openpyxl without going deep on any of them. *The goal is exposure and a working mental model, not mastery.*
 - **Practice exercises** at the end of most sessions give you a chance to apply what was covered independently. They are optional enrichment.
 - **You will not understand everything the first time.** That is normal. The materials are designed to be returned to.
 - **If you fall behind, you can catch up.** Every session is typed from scratch, so there is no per-session sync step to remember. To catch up, open the module for the session you missed. Each module ends with the complete version of the file it builds. Copy that code into your fork and you can rejoin at the next session.
 
 ### What We Do Not Expect
 
-We do not expect you to be able to code a complete analytics pipeline from scratch when this workshop ends. We do not expect you to memorize syntax, commands, or package names.
+We do not expect you to:
+
+- Be able to code a complete analytics pipeline from scratch when this workshop ends
+- Memorize syntax, commands, or package names
 
 ### What We Do Hope
 
@@ -48,8 +60,6 @@ We do not expect you to be able to code a complete analytics pipeline from scrat
 All session modules, sample code, and documentation are published on the [workshop GitHub page](https://github.com/GSU-Analytics/automating-analytics-workshop) and as a Quarto book. They are yours to read, search, and reference after the workshop ends.
 
 Office hours are held directly after every session. The workshop Teams channel is open for questions and troubleshooting between sessions. There are no bad questions. Ask during sessions, in Teams, or at office hours.
-
----
 
 ## The Problem: A Report That Takes All Day
 
@@ -168,8 +178,6 @@ And in under a minute, the `reports/` folder will contain:
 | `student_report.xlsx` | Five-sheet Excel workbook: Student Data, Top 10 Schools, By ZIP, By School Size, Charts |
 
 The same command runs every month. The output is identical in structure every time. If the data changes, the report reflects it automatically.
-
----
 
 ## Live Demo
 

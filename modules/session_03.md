@@ -4,23 +4,17 @@
 
 Every session from here on involves loading, inspecting, and transforming data. This session introduces pandas — the Python library that makes all of that possible — using the survey CSV that sits at the heart of the workshop pipeline. You will learn the four operations you will use in every session that follows: loading a file, inspecting what is in it, selecting columns, and filtering rows. You will also write your first reusable function.
 
-Reference: Prior session — Session 2
-
----
-
 ## Setting Up
 
 Open VS Code, activate your conda environment in the terminal, and open or clear `scratch.py` in the repo root. You will build the code-along script in that file, running it after each addition.
 
 In Git Bash:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
-
----
 
 ## What Is pandas?
 
@@ -39,8 +33,6 @@ DataFrame                        Series (one column)
 └─────────────┴──────────────┘   └──────────────┘
 ```
 
----
-
 ## Loading a CSV
 
 Add this to `scratch.py` and run it:
@@ -54,7 +46,7 @@ print(df)
 
 Run from the repo root:
 
-```
+```zsh
 python scratch.py
 ```
 
@@ -82,8 +74,6 @@ df = pd.read_csv(
 ```
 
 Run `.info()` again — `ncessch` is now `object` (pandas' label for strings). This is exactly how `main.py` loads this file. Any time you load a file with an ID column that is all digits, force it to string.
-
----
 
 ## Inspecting a Dataset
 
@@ -120,8 +110,6 @@ print(df.describe())
 
 For this dataset, only `student_id` is numeric, so you will see its count, mean, min, and max. On richer datasets, `.describe()` immediately shows whether values are in a plausible range.
 
----
-
 ## Selecting Columns
 
 Select one column using bracket notation — this returns a **Series**:
@@ -147,8 +135,6 @@ print(names_only.head())
 
 Column selection is how every module in this pipeline trims down a wide DataFrame to only the columns it actually needs. In `transform.py`, `get_students()` selects six columns from the full Oracle enrollment result before doing anything else with the data.
 
----
-
 ## Filtering Rows
 
 Filter rows by writing a condition inside `[ ]`. The condition must compare a column to a value and return `True` or `False` for each row.
@@ -169,8 +155,6 @@ nj_schools = df[
 ]
 print(nj_schools)
 ```
-
----
 
 ## Writing a Function
 
@@ -200,8 +184,6 @@ This is a simplified preview of `summarize_top_schools()` in `transform.py`, whi
 - **Testability.** In Session 13, you will write unit tests that call functions directly and check their output.
 
 A good rule of thumb: if a block of code has a name you can give it in plain English, it belongs in a function.
-
----
 
 ## The Other Two Sources
 
@@ -240,8 +222,6 @@ This file was downloaded from the Urban Institute Education Data Portal. In Sess
 ### Why these files are here
 
 In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on your team collected by hand before the workshop — the same steps in the old workflow that together took 30–50 minutes. You will work with them directly. Phase 2 (Sessions 8–11) builds the automation that eliminates those manual steps entirely.
-
----
 
 ## Practice Exercise
 
