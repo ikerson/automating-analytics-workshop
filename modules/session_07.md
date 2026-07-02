@@ -4,25 +4,19 @@
 
 Sessions 5 and 6 produced five DataFrames and two chart files. This session builds `report.py` v2: `save_excel_report()`, a function that writes a five-sheet Excel workbook and embeds the saved charts as images on a dedicated sheet. After this session, `transform.py` and `report.py` are both complete and you will run them end-to-end to produce the full Phase 1 output.
 
-Reference: Prior session — Session 6
-
----
-
 ## Setting Up
 
 Open VS Code, activate your conda environment in the terminal, and open `student_report/report.py`.
 
 In Git Bash:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
 > **No VPN or prior sessions required.** The `__main__` block imports from `transform.py` and loads the pre-committed CSV files from `student_report/data/`. It also requires the two chart `.png` files saved in Session 6. Make sure `top_middle_schools.png` and `school_size_distribution.png` exist in `student_report/reports/` before running.
-
----
 
 ## Building report.py v2
 
@@ -156,8 +150,6 @@ student_report.xlsx
 
 Open `student_report.xlsx` and confirm all five sheets are present. You have just produced the same outputs as the manual process — from the command line, in seconds, with no Excel formulas.
 
----
-
 ### What's Next: Phase 2
 
 `enrollment.csv` and `schools.csv` in `student_report/data/` represent data that someone collected by hand before this workshop — enrollment exported from SQL Developer, school directory downloaded from the Urban Institute website. The Python pipeline you built in Phase 1 consumes these files exactly as the manual process would.
@@ -165,8 +157,6 @@ Open `student_report.xlsx` and confirm all five sheets are present. You have jus
 Phase 2 eliminates the manual steps. Sessions 8–11 build `db.py` and `api.py` — the two modules that replace those static files with live queries. When `main.py` wires everything together in Session 12, you will run one command that fetches fresh data, transforms it, and produces the full report automatically.
 
 The code you wrote in Phase 1 does not change. `transform.py` and `report.py` are exactly what `main.py` will call.
-
----
 
 ## report.py v2 — Complete File
 
@@ -227,8 +217,6 @@ def save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, chart_
 ```
 
 `report.py` is now complete. Run `python student_report/transform.py` followed by `python student_report/report.py` to produce all Phase 1 outputs. In Session 12, `main.py` wires all four modules together so that a single command does this end-to-end with no manual steps.
-
----
 
 ## Practice Exercise
 

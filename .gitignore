@@ -13,3 +13,4 @@ student_report/reports/*.png
 student_report/reports/*.xlsx
 /.quarto/
 **/*.quarto_ipynb
+exercises/data

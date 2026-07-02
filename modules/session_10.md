@@ -4,9 +4,10 @@
 
 `schools.csv` in `student_report/data/` was downloaded manually from the Urban Institute Education Data Portal website — the same multi-step process in the original workflow that took 15–20 minutes every month. This session automates that download. We look at what a web API is, make a raw HTTP request to see the structure, then use the `urban-education-data` package to call the Urban Institute's CCD school directory and inspect what comes back. The result is `api.py` v1 — exploration code that confirms we can reach the API and understand the data. Session 11 will refactor it into a reusable function.
 
-Reference: *Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requests)
-
----
+:::{.callout-note}
+### Reference
+*Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requests)
+:::
 
 ## Setting Up
 
@@ -16,13 +17,11 @@ In the Explorer pane, right-click the `student_report/` folder and choose **New 
 
 In the terminal:
 
-```
+```zsh
 conda activate student-report
 ```
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
-
----
 
 ## What Is an API?
 
@@ -43,8 +42,6 @@ An API exposes one or more **endpoints**: specific URLs that return data in a st
 ```
 
 Each school in the CCD directory is one JSON object. The API returns a list of these objects, one per school.
-
----
 
 ## Making a Raw HTTP Request
 
@@ -82,8 +79,6 @@ The `count` field tells you how many total records match the query (1,740 New Yo
 
 Delete this exploration code. The `urban-education-data` package handles pagination for you — you never need to page through results manually.
 
----
-
 ## The urban-education-data Package
 
 The `urban-education-data` package is a Python client for the Urban Institute Education Data Portal, built and maintained by GSU Analytics. It is already installed in your conda environment via `environment.yml`.
@@ -106,8 +101,6 @@ df = result.to_df()
 The package fetches all pages automatically. For NY and NJ middle schools in 2019, that is several thousand records — the call may take a few seconds.
 
 > **Important:** `fips='36,34'` must be a comma-separated **string**. Passing a Python list (`fips=[36, 34]`) returns an HTTP 400 error. This is a quirk of how the API parses the parameter.
-
----
 
 ## Building api.py v1
 
@@ -177,8 +170,6 @@ Run again. The column list will be long. Note the columns the pipeline cares abo
 
 Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 4.
 
----
-
 ## api.py v1 — Complete File
 
 Here is the complete `api.py` v1:
@@ -206,8 +197,6 @@ In Session 11 we will:
 2. Wrap the API call in a `get_school_data(year)` function
 3. Return only the selected columns
 4. Remove the top-level print statements so `api.py` is safe to import from `main.py`
-
----
 
 ## Practice Exercise
 

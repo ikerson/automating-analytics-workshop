@@ -18,6 +18,7 @@ book:
         - modules/session_02.md
     - part: "Phase 1: Working with Provided Data"
       chapters:
+        - modules/session_03_fundamentals.md
         - modules/session_03.md
         - modules/session_04.md
         - modules/session_05.md
@@ -37,6 +38,7 @@ book:
         - modules/session_13.md
     - part: "Exercises"
       chapters:
+        - exercises/session_03_fundamentals.md
         - exercises/session_03.md
         - exercises/session_04.md
         - exercises/session_05.md
@@ -54,3 +56,4 @@ format:
       dark: darkly
     number-sections: false
     toc-expand: 2
+    code-annotations: below
