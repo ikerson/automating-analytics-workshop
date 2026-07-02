@@ -1,227 +1,353 @@
-# Session 3 — Pandas and Working with Data
+# Before You Begin — Python Foundations
 
 ## Introduction
 
-Every session from here on involves loading, inspecting, and transforming data. This session introduces pandas — the Python library that makes all of that possible — using the survey CSV that sits at the heart of the workshop pipeline. You will learn the four operations you will use in every session that follows: loading a file, inspecting what is in it, selecting columns, and filtering rows. You will also write your first reusable function.
+This session is a one-hour primer on core Python before you touch pandas, Oracle, or web APIs. It condenses the parts of *Automate the Boring Stuff with Python* (Chapters 1–7) that the rest of the workshop assumes you already know. If you have written Python before, this will be a fast review. If you have not, treat this as the minimum vocabulary you need to read and write every script that follows.
+
+By the end you should be able to read a `.py` file and explain, line by line, what it does: what gets imported, what kind of data each variable holds, the order the lines execute in, what a function call is doing, how a loop or an `if` branches the flow, and how to look something up in a list, set, or dictionary.
+
+:::{.callout-note}
+### Reference
+Source material [*Automate the Boring Stuff with Python*, 3rd Edition](https://automatetheboringstuff.com/), Chapters 1–7. This session is a summary, not a replacement — the full chapters are worth reading on your own time.
+:::
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and open or clear `scratch.py` in the repo root. You will build the code-along script in that file, running it after each addition.
+Open VS Code, activate your conda environment in the terminal, and open or clear `scratch.py` in the repo root. Every example below can be typed or pasted into that file and run with:
 
-In Git Bash:
-
-```zsh
-conda activate student-report
-```
-
-Confirm `(student-report)` appears in your terminal prompt before continuing.
-
-## What Is pandas?
-
-pandas is a Python library for working with tabular data. When you load a CSV, pandas gives you a **DataFrame** — a table with named columns and numbered rows, similar to an Excel worksheet.
-
-A single column of a DataFrame is called a **Series** — a list of values with an index. You will mostly work with DataFrames, but understanding the distinction matters because many operations return a Series and some expect one.
-
-```
-DataFrame                        Series (one column)
-┌─────────────┬──────────────┐   ┌──────────────┐
-│ student_id  │ school_name  │   │ school_name  │
-├─────────────┼──────────────┤   ├──────────────┤
-│ 124         │ Bloomfield   │   │ Bloomfield   │
-│ 353         │ Bloomfield   │   │ Bloomfield   │
-│ 157         │ Carteret     │   │ Carteret     │
-└─────────────┴──────────────┘   └──────────────┘
-```
-
-## Loading a CSV
-
-Add this to `scratch.py` and run it:
-
-```python
-import pandas as pd
-
-df = pd.read_csv('student_report/data/survey_middle_schools.csv')
-print(df)
-```
-
-Run from the repo root:
-
-```zsh
+```bash
 python scratch.py
 ```
+Run each section, look at the output, then move to the next. Do not skip running the code — reading Python and running Python teach you different things.
 
-You should see a table with three columns — `student_id`, `middle_school_name`, and `ncessch` — and several rows.
+## How a Script Runs: Top to Bottom
 
-> **Always run scripts from the repo root.** If you run from a different directory, relative file paths like `student_report/data/...` will not resolve.
-
-### Controlling column data types
-
-By default, pandas infers each column's type from its values. Run `.info()` to see what it chose:
+A Python file is a list of instructions. Python executes them **in order, one at a time, starting at the top of the file and ending at the bottom**. There is no hidden ordering, no "main" function that gets found automatically — whatever line is first runs first.
 
 ```python
-print(df.info())
+print('first')
+print('second')
+print('third')
+```
+Run it. The output appears in that exact order. This sounds obvious, but it is the single most useful fact for debugging: when something goes wrong, find the line, then read upward. Everything above it has already happened; everything below it has not happened yet.
+
+Two things change strict top-to-bottom order, and you will meet both later in this session:
+
+- **Functions** define a block of code but do not run it until it is *called*, possibly from somewhere else entirely.
+- **`if` statements and loops** can skip lines or repeat them.
+
+Keep this mental model running underneath everything else in this session: Python is always, at any given moment, sitting on exactly one line.
+
+## Variable Assignment
+
+A variable is a name that points to a value. You create one with `=`, which assigns whatever is on the right side to the name on the left.
+
+```python
+city = 'Atlanta'
+print(city)
+
+city = 'Augusta'   # reassignment — the name now points to a new value
+print(city)
 ```
 
-Notice that `ncessch` is loaded as `int64` — a number. That looks fine until you compare it to another dataset where the same ID is stored as a string like `"340183001982"`. Type mismatches silently produce empty merges.
+A few things worth knowing right away:
 
-Fix this at load time by specifying `dtype`:
+- `=` is assignment, not mathematical equality. `city = 'Atlanta'` means "make `city` refer to `'Atlanta'`," not "`city` equals `'Atlanta'`."
+- A variable can be reassigned at any point in the script — whatever value it last pointed to is the one Python uses.
+- Variable names are case-sensitive (`city` and `City` are different names) and conventionally written in `lowercase_with_underscores`.
+
+You will spend the rest of this session assigning values to variables, so this single rule — a name on the left, a value on the right, `=` in between — is worth having solid before moving on.
+
+## Basic Data Types
+
+Every value in Python has a type. The four you will use constantly:
 
 ```python
-df = pd.read_csv(
-    'student_report/data/survey_middle_schools.csv',
-    dtype={'ncessch': str}
-)
+age = 41                 # int — whole number
+gpa = 3.85               # float — decimal number
+name = 'Casey'           # str — text, single or double quotes
+is_active = True         # bool — True or False
 ```
 
-Run `.info()` again — `ncessch` is now `object` (pandas' label for strings). This is exactly how `main.py` loads this file. Any time you load a file with an ID column that is all digits, force it to string.
-
-## Inspecting a Dataset
-
-Three methods give you a quick picture of any DataFrame.
-
-### `.head()`
-
-Returns the first 5 rows (or however many you pass):
+Check any value's type with the built-in `type()` function:
 
 ```python
-print(df.head())
-print(df.head(10))
+print(type(age))
+print(type(name))
 ```
 
-Use this first every time you load a new file.
+### Strings
 
-### `.info()`
-
-Prints column names, non-null counts, and data types:
+Strings are sequences of characters. A few operations you will use in nearly every script:
 
 ```python
-df.info()
+first = 'Jane'
+last = 'Doe'
+full = first + ' ' + last        # concatenation
+print(full)
+
+greeting = f'Hello, {first}!'     # f-string: insert a variable into text
+print(greeting)
+
+print(full.upper())               # 'JANE DOE'
+print(full.lower())               # 'jane doe'
+print(len(full))                  # number of characters
 ```
 
-The non-null count is important: if a column has fewer non-null values than total rows, some values are missing (`NaN`). You will deal with missing data in the merge step.
+f-strings — a letter `f` right before the opening quote — are the standard way to build a string that includes variable values. You will use this constantly to build file paths, log messages, and report titles.
 
-### `.describe()`
-
-Computes summary statistics for numeric columns:
+### Numbers
 
 ```python
-print(df.describe())
+a = 10
+b = 3
+print(a + b)    # 13
+print(a - b)    # 7
+print(a * b)    # 30
+print(a / b)    # 3.333... — division always returns a float
+print(a // b)   # 3       — floor division, drops the remainder
+print(a % b)    # 1       — modulo, the remainder
 ```
 
-For this dataset, only `student_id` is numeric, so you will see its count, mean, min, and max. On richer datasets, `.describe()` immediately shows whether values are in a plausible range.
+`/` vs `//` trips people up constantly: `/` gives you a precise decimal answer; `//` gives you a whole number with anything left over thrown away. You will use `%` later for things like "is this row index even or odd."
 
-## Selecting Columns
+### Converting between types
 
-Select one column using bracket notation — this returns a **Series**:
+Python will not silently combine a string and a number — you must convert explicitly:
 
 ```python
-print(df['middle_school_name'])
+count = 12
+print('You have ' + str(count) + ' items')   # int -> str
+
+text = '42'
+print(int(text) + 8)                          # str -> int, gives 50
 ```
 
-Select multiple columns by passing a list — this returns a **DataFrame**:
+If you ever see `TypeError: can only concatenate str`, this is almost always the fix.
+
+## Functions and Methods
+
+### Functions
+
+A function is a named, reusable block of code. You **define** it once and **call** it as many times as you want.
 
 ```python
-print(df[['student_id', 'middle_school_name']])
+def greet(name):
+    message = f'Hello, {name}!'
+    return message
+
+print(greet('Sam'))
+print(greet('Alex'))
 ```
 
-Note the double brackets: the outer `[ ]` is the selection operator; the inner `[ ]` is a Python list of column names.
+A few terms worth being precise about:
 
-You can assign the result to a new variable:
+- **Defining** a function (the `def` block) does not run anything by itself — Python just remembers it exists. It runs only when you **call** it: `greet('Sam')`.
+- `name` here is a **parameter** — a placeholder for whatever value gets passed in when the function is called.
+- `'Sam'` is an **argument** — the actual value supplied at call time.
+- `return` sends a value back to wherever the function was called from. A function with no `return` statement implicitly returns `None`.
+
+This matters for top-to-bottom order: if `def greet(...)` appears on line 5 and `greet('Sam')` is called on line 40, the *body* of `greet` actually executes at line 40, not line 5.
+
+### Methods
+
+A method is a function that belongs to a value — you call it with dot notation, attached to the thing it operates on. You already used several above:
 
 ```python
-names_only = df[['student_id', 'middle_school_name']]
-print(names_only.head())
+text = 'hello world'
+print(text.upper())       # method, belongs to the string
+print(text.title())       # 'Hello World'
+
+numbers = [3, 1, 2]
+numbers.sort()            # method, belongs to the list
+print(numbers)
 ```
 
-Column selection is how every module in this pipeline trims down a wide DataFrame to only the columns it actually needs. In `transform.py`, `get_students()` selects six columns from the full Oracle enrollment result before doing anything else with the data.
+The distinction is simple: `len(text)` is a function — you hand it a value. `text.upper()` is a method — it lives on the value and you call it with a dot. Later, when you write `df.head()` or `df.groupby(...)`, those are methods belonging to a pandas DataFrame; the dot-call pattern is identical to what you just did with strings and lists.
 
-## Filtering Rows
+## Control Flow
 
-Filter rows by writing a condition inside `[ ]`. The condition must compare a column to a value and return `True` or `False` for each row.
+### `if` / `else`
+
+`if` statements let a script branch — run one block of code or another, depending on a condition. Python decides which block to run based on whether the condition evaluates to `True` or `False`.
 
 ```python
-target_school = df[df['middle_school_name'] == 'Bloomfield Middle School']
-print(target_school)
+temperature = 85
+
+if temperature > 90:
+    print('It is hot.')
+elif temperature > 70:
+    print('It is warm.')
+else:
+    print('It is cool.')
 ```
 
-pandas evaluates `df['middle_school_name'] == 'Bloomfield Middle School'` row by row, producing a column of `True`/`False` values called a **boolean mask**. Placing that mask inside `df[ ]` keeps only the rows where the condition is `True`.
+Indentation is not a style choice in Python — it is how Python knows which lines belong inside the `if` block. Four spaces, consistently, is the standard.
 
-Combine conditions with `&` (and) or `|` (or). Wrap each condition in parentheses:
+Common comparison operators: `==` (equal — note the double equals; a single `=` is assignment, not comparison), `!=` (not equal), `>`, `<`, `>=`, `<=`. Combine conditions with `and` / `or`:
 
 ```python
-nj_schools = df[
-    (df['middle_school_name'] == 'Bloomfield Middle School') |
-    (df['middle_school_name'] == 'Carteret Middle School')
+gpa = 3.4
+credits = 45
+
+if gpa >= 3.0 and credits >= 30:
+    print('Eligible for honors review')
+```
+> A single `=` assigns a value. A double `==` compares two values. Mixing these up is one of the most common early bugs — `if x = 5:` is a syntax error, not a typo Python will quietly fix.
+
+### `for` Loops
+
+A `for` loop repeats a block of code once for each item in a sequence (a list, a string, a range of numbers, and so on).
+
+```python
+schools = ['Bloomfield Middle School', 'Carteret Middle School', 'Newark Academy']
+
+for school in schools:
+    print(school)
+```
+On each pass through the loop, `school` is reassigned to the next item in `schools`. The indented block runs once per item, then the loop ends and execution continues with whatever comes after it.
+
+`range()` generates a sequence of numbers, useful when you want to repeat something a fixed number of times rather than loop over existing data:
+
+```python
+for i in range(5):
+    print(i)        # prints 0, 1, 2, 3, 4
+```
+
+A common pattern: build up a result by looping and accumulating.
+
+```python
+scores = [88, 92, 79, 95, 84]
+total = 0
+
+for score in scores:
+    total = total + score
+
+average = total / len(scores)
+print(average)
+```
+You will see this exact shape — loop, accumulate, summarize — echoed later by pandas methods like `.sum()` and `.mean()`, which do the same thing without you having to write the loop yourself.
+
+## Importing Code
+
+Python's standard library and third-party packages are not available automatically — you have to `import` them. This is the first line of nearly every script you will write in this workshop.
+
+```python
+import math
+print(math.sqrt(16))      # 4.0 — sqrt belongs to the math module
+```
+
+A few import forms you will see repeatedly:
+
+```python
+import pandas as pd          # import a package, give it a short alias
+from datetime import date    # import one specific thing out of a module
+
+today = date.today()
+print(today)
+```
+
+`import pandas as pd` is everywhere in this workshop because typing `pandas.read_csv(...)` a hundred times is slower than typing `pd.read_csv(...)`. The alias is a convention, not a requirement — `pd` for pandas is just what everyone agreed on.
+
+By convention, **all imports go at the top of the file**, before anything else runs. This is not enforced by Python, but every script in this workshop follows it, and you should too — it tells a reader immediately what tools the script depends on.
+
+## Data Containers
+### Lists
+
+A list is an ordered, changeable collection of values, written with square brackets. Items can be looked up by their position (**index**), starting at `0`.
+
+```python
+schools = ['Bloomfield Middle School', 'Carteret Middle School', 'Newark Academy']
+
+print(schools[0])        # 'Bloomfield Middle School' — first item
+print(schools[-1])       # 'Newark Academy' — last item
+print(len(schools))      # 3
+
+schools.append('Eastside High School')   # add to the end
+print(schools)
+
+print('Carteret Middle School' in schools)   # True — membership check
+```
+
+Lists allow duplicates and preserve the order you put things in. Use a list when order matters or when the same value might legitimately appear more than once — for example, a list of enrollment rows where a student can appear multiple times.
+
+### Sets
+
+A set is an unordered collection of **unique** values, written with curly braces. Adding the same value twice has no effect — duplicates are automatically dropped.
+
+```python
+school_ids = {101, 102, 103, 101, 102}
+print(school_ids)            # {101, 102, 103} — duplicates collapsed
+
+school_ids.add(104)
+print(104 in school_ids)     # True
+```
+
+A common real use: turn a list with repeated values into a set to get the distinct values out.
+
+```python
+visited_ids = [101, 102, 101, 103, 102, 101]
+unique_ids = set(visited_ids)
+print(unique_ids)            # {101, 102, 103}
+```
+
+You do not need sets often in this workshop, but the underlying idea — "give me only the distinct values" — is exactly what pandas' `.unique()` and `.drop_duplicates()` do later on, just on a whole column instead of one Python list.
+
+### Dictionaries
+
+A dictionary stores **key-value pairs** — instead of looking something up by position like a list, you look it up by a name (the key), written with curly braces and colons.
+
+```python
+student = {
+    'student_id': 124,
+    'name': 'Jordan Lee',
+    'school': 'Bloomfield Middle School'
+}
+
+print(student['name'])          # 'Jordan Lee'
+
+student['gpa'] = 3.6             # add a new key
+print(student)
+
+print('gpa' in student)         # True — checks keys, not values
+```
+
+Looping over a dictionary's keys and values together is a pattern you will see often:
+
+```python
+for key, value in student.items():
+    print(key, '->', value)
+```
+
+A dictionary is the right tool when each value has a meaningful label — a single record describing one student, one row, one config setting. A list of dictionaries (one dict per record) is also exactly the shape that a CSV file or a database query result takes before it becomes a pandas DataFrame in Session 4 — recognizing that shape now will make `df.to_dict()` and similar conversions much less mysterious later.
+
+## Putting It Together
+
+Here is a single short script that uses everything from this session — import, types, a function, a loop, an `if`, and a dictionary:
+
+```python
+import statistics
+
+students = [
+    {'name': 'Jordan Lee', 'gpa': 3.6},
+    {'name': 'Casey Smith', 'gpa': 2.8},
+    {'name': 'Riley Chen', 'gpa': 3.9},
 ]
-print(nj_schools)
+
+def honor_roll(students, threshold=3.5):
+    names = []
+    for student in students:
+        if student['gpa'] >= threshold:
+            names.append(student['name'])
+    return names
+
+honored = honor_roll(students)
+print(f'Honor roll: {honored}')
+
+gpas = [s['gpa'] for s in students]
+print(f'Average GPA: {statistics.mean(gpas):.2f}')
 ```
-
-## Writing a Function
-
-So far, every operation has been written as a standalone line. When you need to repeat the same steps — or when a block of code has a clear single purpose — wrap it in a function.
-
-Here is a function that takes the survey DataFrame and returns a count of students per school, sorted from most to least:
-
-```python
-def count_by_school(df):
-    counts = df.groupby('middle_school_name').size().reset_index(name='student_count')
-    return counts.sort_values('student_count', ascending=False)
-```
-
-Add this to `scratch.py` and call it:
-
-```python
-result = count_by_school(df)
-print(result.head(10))
-```
-
-This is a simplified preview of `summarize_top_schools()` in `transform.py`, which you will build in Session 5. The structure is the same: a function accepts a DataFrame, performs a transformation, and returns a new DataFrame.
-
-### Why functions?
-
-- **Reuse.** Call `count_by_school(df)` anywhere instead of rewriting four lines every time.
-- **Naming.** `count_by_school(df)` says exactly what it does. Four anonymous lines do not.
-- **Testability.** In Session 13, you will write unit tests that call functions directly and check their output.
-
-A good rule of thumb: if a block of code has a name you can give it in plain English, it belongs in a function.
-
-## The Other Two Sources
-
-The pipeline uses three CSV files in total. You just explored the survey CSV. The other two are also in `student_report/data/`.
-
-### enrollment.csv
-
-```python
-enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
-print(enrollment_df.head())
-enrollment_df.info()
-```
-
-A few things to notice:
-- Column names are lowercase — a normalization step that `db.py` applies when it queries Oracle.
-- There are more rows than students. A student enrolled in three courses appears three times — one row per enrollment. Session 4 will deduplicate this to one row per student before merging.
-- `student_id` is the key that links this file to the survey.
-
-This file was exported from the Oracle training database. In Sessions 8–9 you will write the Python code that generates it automatically.
-
-### schools.csv
-
-```python
-school_df = pd.read_csv('student_report/data/schools.csv')
-print(school_df.head())
-school_df.info()
-```
-
-A few things to notice:
-- `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. This is a quirk of how the Urban Institute API returns them; `transform.py` normalizes them in Session 4 before merging.
-- `school_level` encodes the school type: `2.0` means middle school.
-- There are thousands of rows — every NY and NJ school in the 2019 CCD directory.
-
-This file was downloaded from the Urban Institute Education Data Portal. In Sessions 10–11 you will write the Python code that generates it automatically.
-
-### Why these files are here
-
-In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on your team collected by hand before the workshop — the same steps in the old workflow that together took 30–50 minutes. You will work with them directly. Phase 2 (Sessions 8–11) builds the automation that eliminates those manual steps entirely.
+Run it, then read it back top to bottom out loud: an import, a list of dictionaries, a function definition, a function call, an f-string, and a built-in module method. If every piece of that sentence makes sense, you have what you need for Session 4.
 
 ## Practice Exercise
 
@@ -229,14 +355,9 @@ In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on yo
 
 The starter script is at [`exercises/session_03_exercise.py`](../exercises/session_03_exercise.py). It contains instructions and fill-in-the-blank placeholders. Every exercise in this workshop uses the same convention: a `# TODO:` comment marks each blank. Replace `"___"` (with the quotes) with a string value, and replace a bare `___` (no quotes) with a variable name or expression. If you get stuck, the completed version is at [`exercises/session_03_answer.py`](../exercises/session_03_answer.py).
 
-Run from the repo root:
-
-```
-python exercises/session_03_exercise.py
-```
 
 ## Additional Resources
 
-- [pandas documentation](https://pandas.pydata.org/docs/)
-- [pandas cheat sheet (DataCamp)](https://www.datacamp.com/cheat-sheet/pandas-cheat-sheet-for-data-science-in-python)
-- [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html)
+- [*Automate the Boring Stuff with Python*, Chapters 1–7](https://automatetheboringstuff.com/) — the full source material this session summarizes
+- [Python official tutorial](https://docs.python.org/3/tutorial/)
+- [Python data types cheat sheet (DataCamp)](https://www.datacamp.com/cheat-sheet/python-data-types-cheat-sheet)

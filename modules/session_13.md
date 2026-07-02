@@ -1,16 +1,14 @@
-# Session 13 — Introduction to Unit Testing *(Optional)*
+# Session 13 — The Automated Pipeline
 
 ## Introduction
 
-The pipeline works. Session 13 asks: how do we know it will keep working? Unit tests are short, automated checks that verify specific functions behave correctly. When a change to one function breaks another, tests catch the problem immediately — before it reaches the data. This session walks through the 12 tests already written in `student_report/tests/` and shows how to run them with `pytest`.
-
-This session is optional. Skip it if time does not allow; the pipeline is complete without it.
+Sessions 5–8 built the data transformation and reporting modules (`transform.py` and `report.py`). Sessions 9–12 built the data collection modules (`db.py` and `api.py`). Each module has been tested individually. This session builds `main.py`: a short script that imports all four modules and calls them in sequence, turning the manual multi-step process into a single command.
 
 ## Setting Up
 
 Open VS Code and activate your conda environment in the terminal.
 
-In the Explorer pane, expand `student_report/` and then `tests/` to see the test files. Click any file to open it in the editor.
+In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `main.py`.
 
 In the terminal:
 
@@ -20,241 +18,268 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-Run the tests now to confirm everything passes before reading any further:
+> **GSU network required.** `main.py` calls `get_enrollment()` from `db.py`, which connects to the Oracle server on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN first.
 
-```bash
-pytest student_report/tests/ -v
-```
+## Building main.py
 
-You should see 12 tests collected and all passing. If any fail, check that the conda environment is active and that `student_report/` contains the completed `transform.py` and `report.py` files from prior sessions.
+### Imports
 
-## Why Test?
-
-The pipeline merges data from three sources and runs a chain of transformations. If `merge_data()` stops normalizing `ncessch` correctly, the join silently produces zero matches — and the report is wrong with no error message. If `save_top_schools_chart()` fails to close the figure, memory usage grows with every run. These are bugs that would be invisible until someone noticed the output looked wrong.
-
-Unit tests are functions that call your code with known inputs and assert that the output matches what you expect. A passing test suite is evidence that each function works in isolation. When you add a feature or change a function, re-running the tests tells you immediately if something broke.
-
-The tests in this project cover `transform.py` and `report.py`. `db.py` and `api.py` are excluded because their behavior depends on live external systems — a database connection and a network call — which are outside the scope of unit testing.
-
-## Pytest Basics
-
-Pytest is a testing framework for Python. It collects and runs test functions automatically, reports failures with clear messages, and provides fixtures for managing test data.
-
-A test function has two requirements: its name starts with `test_`, and it contains one or more `assert` statements. Pytest runs the function; if any assertion fails, the test fails. If the function completes without error, the test passes.
+Start the file with the imports:
 
 ```python
-def test_something():
-    result = 2 + 2
-    assert result == 4
-```
-
-Run a directory of tests with:
-
-```bash
-pytest student_report/tests/ -v
-```
-
-`-v` (verbose) prints one line per test with its name and result, rather than just a dot per test.
-
-## The Test Files
-
-The `tests/` directory contains three files:
-
-```
-student_report/tests/
-├── __init__.py        # empty — marks tests/ as a Python package
-├── test_transform.py  # 9 tests for transform.py
-└── test_report.py     # 3 tests for report.py
-```
-
-`__init__.py` is empty. Its presence makes `tests/` a Python package, which allows pytest to discover and import the test files reliably.
-
-### sys.path setup
-
-Both test files begin with the same three lines:
-
-```python
-import sys
+import argparse
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+import pandas as pd
+from db import get_enrollment
+from api import get_school_data
+from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
+from report import save_top_schools_chart, save_size_chart, save_excel_report
 ```
 
-When pytest runs from the repo root, Python does not automatically know where `transform.py` and `report.py` live. `__file__` is the test file's own path; `.parent` is `student_report/tests/`; `.parent.parent` is `student_report/`. Inserting that directory at position 0 in `sys.path` tells Python to look there first when resolving imports — so `from transform import ...` finds `student_report/transform.py`.
+The first three lines import from the Python standard library and from `pandas`. The last four import from the four modules built in this workshop — `db`, `api`, `transform`, and `report` — by name, without a package prefix.
 
-### Fixtures
+Python finds these imports because running `python student_report/main.py` from the repo root automatically adds `student_report/` to the module search path. That makes `db`, `api`, `transform`, and `report` importable by name, exactly like any installed package.
 
-A fixture is a function decorated with `@pytest.fixture` that provides test data. Any test function that lists a fixture's name as a parameter receives its return value automatically — pytest handles the wiring.
+### The main() function
+
+Add the `main()` function below the imports:
 
 ```python
-@pytest.fixture
-def enrollment_df():
-    return pd.DataFrame({
-        'student_id': [1, 1, 2],
-        'first_name': ['Alice', 'Alice', 'Bob'],
-        ...
-    })
+def main(args):
+    output = Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
 
-def test_get_students_deduplicates(enrollment_df):
-    result = get_students(enrollment_df)
-    assert len(result) == 2
+    print("Fetching enrollment data from Oracle...")
+    enrollment_df = get_enrollment()
+    students_df = get_students(enrollment_df)
+    print(f"  {len(students_df)} students")
+
+    print("Loading middle school survey data...")
+    survey_path = Path(__file__).parent / "data" / "survey_middle_schools.csv"
+    survey_df = pd.read_csv(survey_path, dtype={'student_id': int, 'ncessch': str})
+    print(f"  {len(survey_df)} survey records")
+
+    print(f"Fetching school data from API (year={args.year}, fips='36,34')...")
+    school_df = get_school_data(args.year)
+    print(f"  {len(school_df)} school records")
+
+    print("Merging and summarizing...")
+    merged_df = merge_data(students_df, survey_df, school_df)
+    top_schools = summarize_top_schools(merged_df)
+    zip_summary = summarize_by_zip(merged_df)
+    size_summary = summarize_by_size(merged_df)
+
+    merged_csv = output / "merged.csv"
+    merged_df.to_csv(merged_csv, index=False)
+    print(f"  Saved {merged_csv}")
+
+    print("Generating charts...")
+    chart1 = save_top_schools_chart(top_schools, output)
+    chart2 = save_size_chart(size_summary, output)
+
+    print("Generating Excel report...")
+    excel_path = save_excel_report(
+        merged_df, top_schools, zip_summary, size_summary,
+        [chart1, chart2], output,
+    )
+
+    print(f"\nDone. Outputs in {output}/")
+    print(f"  {merged_csv.name}")
+    print(f"  {chart1.name}")
+    print(f"  {chart2.name}")
+    print(f"  {excel_path.name}")
 ```
 
-The `enrollment_df` fixture builds a small DataFrame: two students, but student 1 appears twice (two enrollments). The test calls `get_students()` and asserts the result has exactly 2 rows — confirming deduplication works.
+Walk through each section:
 
-Fixtures keep test data defined once and reused across multiple tests. If the expected input format ever changes, you update the fixture and every test that uses it reflects the change automatically.
+**`output = Path(args.output); output.mkdir(parents=True, exist_ok=True)`** — resolves the output directory path and creates it if it does not exist. `parents=True` creates any missing parent directories. `exist_ok=True` means no error is raised if the directory already exists.
 
-## test_transform.py — Walkthrough
+**`get_enrollment()` → `get_students()`** — queries Oracle for the full enrollment dataset, then deduplicates to one row per student. The print statement confirms how many students were found.
 
-`test_transform.py` contains 9 tests covering all five functions in `transform.py`.
+**`Path(__file__).parent / "data" / "survey_middle_schools.csv"`** — loads the survey CSV relative to `main.py`'s location, not the current working directory. `__file__` is the path of the script being run; `.parent` is the directory it lives in. This path resolves correctly regardless of where you run the command from.
 
-### Testing get_students()
+**`dtype={'student_id': int, 'ncessch': str}`** — tells pandas to read `student_id` as an integer and `ncessch` as a string. Reading `ncessch` as a string from the start prevents pandas from converting it to a float, which would require the normalization step `transform.py` applies to API data.
+
+**`get_school_data(args.year)`** — calls the CCD directory API for the year passed on the command line. Pagination is handled automatically by the `EducationDataAPI` client.
+
+**Merge and summarize** — calls the five `transform.py` functions in the same order they were built. Each function receives the DataFrame(s) it needs and returns a clean result.
+
+**`merged_df.to_csv(merged_csv, index=False)`** — saves the merged DataFrame as a flat CSV. This is an intermediate output the team can open in Excel independently of the workbook.
+
+**`save_top_schools_chart` / `save_size_chart`** — each function returns the path of the file it saved. Those paths are collected into a list and passed to `save_excel_report`.
+
+**`save_excel_report(..., [chart1, chart2], output)`** — writes the five-sheet workbook and embeds both charts on the Charts sheet.
+
+**Final print block** — reports exactly which files were written and where, so the user knows where to look.
+
+### argparse — the command-line interface
+
+When you type a command like `python student_report/main.py --year 2019`, Python receives everything after `python` as a plain list of strings:
 
 ```python
-def test_get_students_deduplicates(enrollment_df):
-    result = get_students(enrollment_df)
-    assert len(result) == 2
-
-def test_get_students_columns(enrollment_df):
-    result = get_students(enrollment_df)
-    assert list(result.columns) == ['student_id', 'first_name', 'last_name', 'zip', 'city', 'state']
+['student_report/main.py', '--year', '2019']
 ```
 
-Two separate assertions: one for row count (deduplication worked), one for column names (no extra columns slipped through). Keeping them in separate test functions means a failure points to exactly what went wrong.
+Every value in that list is a string — including `'2019'`. `argparse` is the standard library module that turns that raw list into named Python values your function can actually use. It handles the string-to-integer conversion, supplies default values for anything you omit, and generates a `--help` message automatically.
 
-### Testing merge_data() — correct values
+Add the entry point at the bottom of the file:
 
 ```python
-def test_merge_data_school_size_bucket(enrollment_df, survey_df, school_df):
-    students = get_students(enrollment_df)
-    result = merge_data(students, survey_df, school_df).set_index('student_id')
-    assert str(result.loc[1, 'school_size']) == 'Medium (300-700)'
-    assert str(result.loc[2, 'school_size']) == 'Small (<300)'
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate middle school outreach report."
+    )
+    parser.add_argument('--year', type=int, default=2019, help='CCD data year (default: 2019)')
+    parser.add_argument('--output', type=str, default='reports/', help='Output directory (default: reports/)')
+    args = parser.parse_args()
+    main(args)
 ```
 
-The fixture data has school enrollments of 450 (Medium) and 250 (Small). This test checks that `pd.cut()` assigned the correct bucket to each student. `str(...)` converts the `Categorical` value to a plain string for comparison.
+**`argparse.ArgumentParser`** — creates the parser object. The `description` text appears at the top of the `--help` output.
 
-### Testing merge_data() — edge cases
+**`add_argument('--year', type=int, default=2019, ...)`** — registers `--year` as an optional argument. The `--` prefix is the convention for named arguments you can pass in any order or leave out entirely. `type=int` tells argparse to convert the string `'2019'` to the integer `2019` before storing it. `default=2019` means the argument can be omitted and the pipeline will still run with that value.
+
+**`add_argument('--output', ...)`** — registers `--output` the same way. No `type` is specified, so the value stays a string, which is what `Path()` expects.
+
+**`parse_args()`** — reads the raw list, matches each `--name value` pair to a registered argument, applies type conversions and defaults, and returns a *namespace object* — a simple container where each argument becomes an attribute. After this line, `args` looks like:
 
 ```python
-def test_merge_data_zip_padding(school_df):
-    students = pd.DataFrame({
-        'student_id': [3],
-        'zip': ['7030'],  # missing leading zero
-        ...
-    })
-    result = merge_data(students, survey, school_df)
-    assert result.iloc[0]['school_name'] == 'Hoboken Middle School'
+Namespace(year=2019, output='reports/')
 ```
 
-This test constructs its own input — a student whose ZIP is `'7030'` instead of `'07030'`. Without the `.str.zfill(5)` normalization in `merge_data()`, the join would fail silently and `school_name` would be `NaN`. The assertion confirms the match still succeeds after padding.
+`args.year` and `args.output` are then available as plain attributes inside `main()`.
+
+**`if __name__ == "__main__":`** — this guard ensures the argparse block only runs when `main.py` is executed directly. When another script does `from main import something`, this block is skipped — which prevents argparse from trying to read command-line arguments at import time.
+
+## Running the Pipeline
+
+Run the complete pipeline from the repo root:
+
+```bash
+python student_report/main.py --year 2019 --output student_report/reports/
+```
+
+You should see progress output similar to:
+
+```
+Fetching enrollment data from Oracle...
+  165 students
+Loading middle school survey data...
+  240 survey records
+Fetching school data from API (year=2019, fips='36,34')...
+  7439 school records
+Merging and summarizing...
+  Saved student_report/reports/merged.csv
+Generating charts...
+Generating Excel report...
+
+Done. Outputs in student_report/reports/
+  merged.csv
+  top_middle_schools.png
+  school_size_distribution.png
+  student_report.xlsx
+```
+
+Open `student_report/reports/` and verify all four output files are present. Open `student_report.xlsx` and confirm five sheets: Student Data, Top 10 Schools, By ZIP, By School Size, Charts.
+
+To run with a different year or output directory:
+
+```bash
+python student_report/main.py --year 2018 --output student_report/reports/2018/
+```
+
+To see all available options:
+
+```bash
+python student_report/main.py --help
+```
+
+## main.py — Complete File
 
 ```python
-def test_merge_data_unmatched_student(enrollment_df, school_df):
-    survey = pd.DataFrame({'student_id': [1], ...})  # only student 1
-    students = get_students(enrollment_df)
-    result = merge_data(students, survey, school_df)
-    row2 = result[result['student_id'] == 2].iloc[0]
-    assert pd.isna(row2['middle_school_name'])
+import argparse
+from pathlib import Path
+import pandas as pd
+from db import get_enrollment
+from api import get_school_data
+from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
+from report import save_top_schools_chart, save_size_chart, save_excel_report
+
+
+def main(args):
+    output = Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
+
+    print("Fetching enrollment data from Oracle...")
+    enrollment_df = get_enrollment()
+    students_df = get_students(enrollment_df)
+    print(f"  {len(students_df)} students")
+
+    print("Loading middle school survey data...")
+    survey_path = Path(__file__).parent / "data" / "survey_middle_schools.csv"
+    survey_df = pd.read_csv(survey_path, dtype={'student_id': int, 'ncessch': str})
+    print(f"  {len(survey_df)} survey records")
+
+    print(f"Fetching school data from API (year={args.year}, fips='36,34')...")
+    school_df = get_school_data(args.year)
+    print(f"  {len(school_df)} school records")
+
+    print("Merging and summarizing...")
+    merged_df = merge_data(students_df, survey_df, school_df)
+    top_schools = summarize_top_schools(merged_df)
+    zip_summary = summarize_by_zip(merged_df)
+    size_summary = summarize_by_size(merged_df)
+
+    merged_csv = output / "merged.csv"
+    merged_df.to_csv(merged_csv, index=False)
+    print(f"  Saved {merged_csv}")
+
+    print("Generating charts...")
+    chart1 = save_top_schools_chart(top_schools, output)
+    chart2 = save_size_chart(size_summary, output)
+
+    print("Generating Excel report...")
+    excel_path = save_excel_report(
+        merged_df, top_schools, zip_summary, size_summary,
+        [chart1, chart2], output,
+    )
+
+    print(f"\nDone. Outputs in {output}/")
+    print(f"  {merged_csv.name}")
+    print(f"  {chart1.name}")
+    print(f"  {chart2.name}")
+    print(f"  {excel_path.name}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate middle school outreach report."
+    )
+    parser.add_argument('--year', type=int, default=2019, help='CCD data year (default: 2019)')
+    parser.add_argument('--output', type=str, default='reports/', help='Output directory (default: reports/)')
+    args = parser.parse_args()
+    main(args)
 ```
 
-Student 2 has no survey entry. The left join should produce `NaN` for `middle_school_name` — not an error, and not a dropped row. The test confirms the unmatched student survives the merge with `NaN` school data.
+## What's Next
 
-### Testing the summarize functions
+The pipeline now runs end-to-end with a single command. A few directions to consider from here:
 
-```python
-def test_summarize_top_schools_columns(enrollment_df, survey_df, school_df):
-    students = get_students(enrollment_df)
-    merged = merge_data(students, survey_df, school_df)
-    result = summarize_top_schools(merged)
-    assert 'middle_school_name' in result.columns
-    assert 'student_count' in result.columns
-    assert len(result) <= 10
-```
+**Scheduling** — instead of running the command manually each month, the pipeline can be scheduled to run automatically.
 
-The three summarize tests follow the same pattern: build the merged DataFrame from fixtures, call the function, and check that the result has the expected columns and shape. They do not assert specific values because the aggregate results are fully determined by the fixture data — checking columns and row count is sufficient to confirm the functions produce the right structure.
+On Windows, Task Scheduler provides scheduling through a GUI. Create a new task, set the trigger to monthly, and set the action to run `conda run -n student-report python student_report/main.py --year 2019 --output student_report\reports\` from the repo root directory.
 
-## test_report.py — Walkthrough
+**Year parameter** — the `--year` argument makes it straightforward to generate reports for prior years without changing the code.
 
-`test_report.py` has one additional setup line not present in `test_transform.py`:
-
-```python
-import matplotlib
-matplotlib.use('Agg')
-```
-
-`matplotlib.use('Agg')` switches to the Agg rendering backend, which writes to files without needing a display. Tests run in headless environments — a terminal, a CI server — where there is no screen to open a window on. Without this line, the chart functions would attempt to display an interactive window and fail. This call must appear before `import matplotlib.pyplot` or any import that pulls in pyplot.
-
-### The tmp_path fixture
-
-```python
-def test_save_top_schools_chart(top_schools_df, tmp_path):
-    path = save_top_schools_chart(top_schools_df, tmp_path)
-    assert path.exists()
-    assert path.suffix == '.png'
-```
-
-`tmp_path` is a built-in pytest fixture — no import needed. It provides a temporary directory as a `Path` object. The directory is created fresh for each test and deleted automatically when the test finishes. Passing it to `save_top_schools_chart()` as `output_dir` means the chart is written to a throwaway location rather than the real `reports/` directory.
-
-The assertions check that the returned path exists on disk and has a `.png` extension.
-
-### Testing the Excel workbook
-
-```python
-def test_save_excel_report_sheets(merged_df, top_schools_df, zip_summary_df, size_df, tmp_path):
-    from openpyxl import load_workbook
-    chart1 = save_top_schools_chart(top_schools_df, tmp_path)
-    chart2 = save_size_chart(size_df, tmp_path)
-    path = save_excel_report(merged_df, top_schools_df, zip_summary_df, size_df, [chart1, chart2], tmp_path)
-    wb = load_workbook(path)
-    assert wb.sheetnames == ['Student Data', 'Top 10 Schools', 'By ZIP', 'By School Size', 'Charts']
-```
-
-This test calls `save_top_schools_chart()` and `save_size_chart()` first to produce real PNG files, then passes those paths to `save_excel_report()`. After the function returns, it opens the workbook with `openpyxl` and asserts the sheet names match exactly — in the correct order. If a sheet is missing, renamed, or created in the wrong order, this assertion fails.
-
-## Running the Tests
-
-Run all tests with verbose output:
+**Session 14 (optional)** — if time allows, Session 14 introduces `pytest` and walks through the unit tests in `student_report/tests/`. The tests cover `transform.py` and `report.py` and can be run with:
 
 ```bash
 pytest student_report/tests/ -v
-```
-
-Expected output:
-
-```
-collected 12 items
-
-student_report/tests/test_transform.py::test_get_students_deduplicates PASSED
-student_report/tests/test_transform.py::test_get_students_columns PASSED
-student_report/tests/test_transform.py::test_merge_data_row_count PASSED
-student_report/tests/test_transform.py::test_merge_data_school_size_bucket PASSED
-student_report/tests/test_transform.py::test_merge_data_zip_padding PASSED
-student_report/tests/test_transform.py::test_merge_data_unmatched_student PASSED
-student_report/tests/test_transform.py::test_summarize_top_schools_columns PASSED
-student_report/tests/test_transform.py::test_summarize_by_zip_columns PASSED
-student_report/tests/test_transform.py::test_summarize_by_size_columns PASSED
-student_report/tests/test_report.py::test_save_top_schools_chart PASSED
-student_report/tests/test_report.py::test_save_size_chart PASSED
-student_report/tests/test_report.py::test_save_excel_report_sheets PASSED
-
-12 passed in ...s
-```
-
-Run a single test file:
-
-```bash
-pytest student_report/tests/test_transform.py -v
-```
-
-Run a single test by name:
-
-```bash
-pytest student_report/tests/test_transform.py::test_merge_data_zip_padding -v
 ```
 
 ## Additional Resources
 
-- [pytest — Getting started](https://docs.pytest.org/en/stable/getting-started.html)
-- [pytest — Fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html)
-- [pytest — tmp_path fixture](https://docs.pytest.org/en/stable/how-to/tmp_path.html)
-- [matplotlib — Non-interactive backends](https://matplotlib.org/stable/users/explain/figure/backends.html)
+- [Python — argparse](https://docs.python.org/3/library/argparse.html)
+- [Python — pathlib](https://docs.python.org/3/library/pathlib.html)
+- [Python — `__file__` and module paths](https://docs.python.org/3/reference/import.html)
+- *Automate the Boring Stuff with Python*, 3rd Ed. — Chapter 10 (organizing files)

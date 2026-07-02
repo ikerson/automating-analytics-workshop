@@ -1,4 +1,4 @@
-# Session 5 Exercise — Aggregations and Summary Statistics (Answer)
+# Session 5 Exercise — Merging Three Sources (Answer)
 #
 # Run from the repo root:
 #   python exercises/session_05_answer.py
@@ -8,23 +8,20 @@ import pandas as pd
 
 DATA_DIR = Path('exercises') / 'data'
 
-merged = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
+contacts = pd.read_csv(DATA_DIR / 'outreach_contacts.csv')
+survey = pd.read_csv(DATA_DIR / 'school_survey_2019.csv')
+schools = pd.read_csv(DATA_DIR / 'middle_schools_2019.csv')
 
-merged['school_size'] = pd.cut(
-    merged['enrollment'],
-    bins=[0, 300, 700, float('inf')],
-    labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
-)
+merged = contacts.merge(survey[['student_id', 'ncessch']], on='student_id', how='left')
 
-print(merged['city_location'].value_counts())
+merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
+schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]
 
-size_summary = (
-    merged.dropna(subset=['school_size'])
-    .groupby('school_size', observed=True)
-    .agg(student_count=('student_id', 'count'), avg_enrollment=('enrollment', 'mean'))
-    .reset_index()
-)
-print(size_summary)
+merged = merged.merge(schools, on='ncessch', how='left')
 
-size_summary.to_csv(DATA_DIR / 'size_summary.csv', index=False)
+unmatched = merged[merged['school_name'].isna()]
+print(f"Contacts without a school match: {len(unmatched)}")
+print(unmatched[['student_id', 'first_name', 'last_name']])
+
+merged.to_csv(DATA_DIR / 'merged_contacts.csv', index=False)
 print("Done.")

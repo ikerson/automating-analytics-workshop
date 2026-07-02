@@ -1,16 +1,14 @@
-# Session 12 — The Automated Pipeline
+# Session 12 — Working with API Results
 
 ## Introduction
 
-Sessions 4–7 built the data transformation and reporting modules (`transform.py` and `report.py`). Sessions 8–11 built the data collection modules (`db.py` and `api.py`). Each module has been tested individually. This session builds `main.py`: a short script that imports all four modules and calls them in sequence, turning the manual multi-step process into a single command.
+Session 11 called the CCD school directory API and confirmed the data is accessible. The result DataFrame has over 50 columns — far more than the pipeline needs. This session builds `api.py` v2: we define the 9 columns the pipeline uses, wrap the API call in a function, and verify the result. The pattern mirrors what we did in Session 10 for `db.py`: exploration code becomes a clean, importable module.
 
 ## Setting Up
 
-Open VS Code and activate your conda environment in the terminal.
+Open VS Code, activate your conda environment in the terminal, and open `student_report/api.py`. This is the exploration file you built in Session 11.
 
-In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `main.py`.
-
-In the terminal:
+In Git Bash:
 
 ```zsh
 conda activate student-report
@@ -18,268 +16,179 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-> **GSU network required.** `main.py` calls `get_enrollment()` from `db.py`, which connects to the Oracle server on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN first.
-
-## Building main.py
-
-### Imports
-
-Start the file with the imports:
+Your current `api.py` should look like this:
 
 ```python
-import argparse
-from pathlib import Path
-import pandas as pd
-from db import get_enrollment
-from api import get_school_data
-from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
-from report import save_top_schools_chart, save_size_chart, save_excel_report
+from educationdata import EducationDataAPI
+
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips='36,34')
+print(result.count)
+
+df = result.to_df()
+print(df.head())
+print()
+df.info()
+print()
+print(df.describe())
+print()
+print(df.columns.tolist())
 ```
 
-The first three lines import from the Python standard library and from `pandas`. The last four import from the four modules built in this workshop — `db`, `api`, `transform`, and `report` — by name, without a package prefix.
+Today we replace this with a function that returns only the columns the pipeline needs.
 
-Python finds these imports because running `python student_report/main.py` from the repo root automatically adds `student_report/` to the module search path. That makes `db`, `api`, `transform`, and `report` importable by name, exactly like any installed package.
+## Building api.py v2
 
-### The main() function
+### Clearing the exploration code and defining the column list
 
-Add the `main()` function below the imports:
+Delete everything below the import. Then add a `CCD_COLUMNS` list that names the 9 columns the pipeline uses:
 
 ```python
-def main(args):
-    output = Path(args.output)
-    output.mkdir(parents=True, exist_ok=True)
+from educationdata import EducationDataAPI
 
-    print("Fetching enrollment data from Oracle...")
-    enrollment_df = get_enrollment()
-    students_df = get_students(enrollment_df)
-    print(f"  {len(students_df)} students")
-
-    print("Loading middle school survey data...")
-    survey_path = Path(__file__).parent / "data" / "survey_middle_schools.csv"
-    survey_df = pd.read_csv(survey_path, dtype={'student_id': int, 'ncessch': str})
-    print(f"  {len(survey_df)} survey records")
-
-    print(f"Fetching school data from API (year={args.year}, fips='36,34')...")
-    school_df = get_school_data(args.year)
-    print(f"  {len(school_df)} school records")
-
-    print("Merging and summarizing...")
-    merged_df = merge_data(students_df, survey_df, school_df)
-    top_schools = summarize_top_schools(merged_df)
-    zip_summary = summarize_by_zip(merged_df)
-    size_summary = summarize_by_size(merged_df)
-
-    merged_csv = output / "merged.csv"
-    merged_df.to_csv(merged_csv, index=False)
-    print(f"  Saved {merged_csv}")
-
-    print("Generating charts...")
-    chart1 = save_top_schools_chart(top_schools, output)
-    chart2 = save_size_chart(size_summary, output)
-
-    print("Generating Excel report...")
-    excel_path = save_excel_report(
-        merged_df, top_schools, zip_summary, size_summary,
-        [chart1, chart2], output,
-    )
-
-    print(f"\nDone. Outputs in {output}/")
-    print(f"  {merged_csv.name}")
-    print(f"  {chart1.name}")
-    print(f"  {chart2.name}")
-    print(f"  {excel_path.name}")
+CCD_COLUMNS = [
+    'ncessch',
+    'school_name',
+    'zip_mailing',
+    'city_location',
+    'state_location',
+    'school_level',
+    'enrollment',
+    'lowest_grade_offered',
+    'highest_grade_offered',
+]
 ```
 
-Walk through each section:
+Storing the column list as a named constant serves two purposes: the function below stays short and readable, and any future change to the columns — adding one, removing one — happens in one place.
 
-**`output = Path(args.output); output.mkdir(parents=True, exist_ok=True)`** — resolves the output directory path and creates it if it does not exist. `parents=True` creates any missing parent directories. `exist_ok=True` means no error is raised if the directory already exists.
+### Writing the function
 
-**`get_enrollment()` → `get_students()`** — queries Oracle for the full enrollment dataset, then deduplicates to one row per student. The print statement confirms how many students were found.
-
-**`Path(__file__).parent / "data" / "survey_middle_schools.csv"`** — loads the survey CSV relative to `main.py`'s location, not the current working directory. `__file__` is the path of the script being run; `.parent` is the directory it lives in. This path resolves correctly regardless of where you run the command from.
-
-**`dtype={'student_id': int, 'ncessch': str}`** — tells pandas to read `student_id` as an integer and `ncessch` as a string. Reading `ncessch` as a string from the start prevents pandas from converting it to a float, which would require the normalization step `transform.py` applies to API data.
-
-**`get_school_data(args.year)`** — calls the CCD directory API for the year passed on the command line. Pagination is handled automatically by the `EducationDataAPI` client.
-
-**Merge and summarize** — calls the five `transform.py` functions in the same order they were built. Each function receives the DataFrame(s) it needs and returns a clean result.
-
-**`merged_df.to_csv(merged_csv, index=False)`** — saves the merged DataFrame as a flat CSV. This is an intermediate output the team can open in Excel independently of the workbook.
-
-**`save_top_schools_chart` / `save_size_chart`** — each function returns the path of the file it saved. Those paths are collected into a list and passed to `save_excel_report`.
-
-**`save_excel_report(..., [chart1, chart2], output)`** — writes the five-sheet workbook and embeds both charts on the Charts sheet.
-
-**Final print block** — reports exactly which files were written and where, so the user knows where to look.
-
-### argparse — the command-line interface
-
-When you type a command like `python student_report/main.py --year 2019`, Python receives everything after `python` as a plain list of strings:
+Add `get_school_data()` below the constant:
 
 ```python
-['student_report/main.py', '--year', '2019']
+def get_school_data(year):
+    api = EducationDataAPI()
+    result = api.ccd_directory(year, fips='36,34')
+    df = result.to_df()
+    return df[CCD_COLUMNS].copy()
 ```
 
-Every value in that list is a string — including `'2019'`. `argparse` is the standard library module that turns that raw list into named Python values your function can actually use. It handles the string-to-integer conversion, supplies default values for anything you omit, and generates a `--help` message automatically.
+`df[CCD_COLUMNS]` selects only the 9 columns in the list. `.copy()` returns an independent DataFrame so that later operations on the result do not inadvertently modify the original API data.
 
-Add the entry point at the bottom of the file:
+The `year` parameter makes the function reusable — `get_school_data(2018)` returns 2018 data without changing anything else. The `fips='36,34'` is hardcoded because the pipeline always targets New York and New Jersey.
+
+### Running the function
+
+Add a `if __name__ == '__main__':` block to test the function without making `api.py` run on every import:
 
 ```python
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate middle school outreach report."
-    )
-    parser.add_argument('--year', type=int, default=2019, help='CCD data year (default: 2019)')
-    parser.add_argument('--output', type=str, default='reports/', help='Output directory (default: reports/)')
-    args = parser.parse_args()
-    main(args)
+if __name__ == '__main__':
+    df = get_school_data(2019)
+    print(df.shape)
+    print(df.head())
+    print()
+    df.info()
 ```
 
-**`argparse.ArgumentParser`** — creates the parser object. The `description` text appears at the top of the `--help` output.
-
-**`add_argument('--year', type=int, default=2019, ...)`** — registers `--year` as an optional argument. The `--` prefix is the convention for named arguments you can pass in any order or leave out entirely. `type=int` tells argparse to convert the string `'2019'` to the integer `2019` before storing it. `default=2019` means the argument can be omitted and the pipeline will still run with that value.
-
-**`add_argument('--output', ...)`** — registers `--output` the same way. No `type` is specified, so the value stays a string, which is what `Path()` expects.
-
-**`parse_args()`** — reads the raw list, matches each `--name value` pair to a registered argument, applies type conversions and defaults, and returns a *namespace object* — a simple container where each argument becomes an attribute. After this line, `args` looks like:
-
-```python
-Namespace(year=2019, output='reports/')
-```
-
-`args.year` and `args.output` are then available as plain attributes inside `main()`.
-
-**`if __name__ == "__main__":`** — this guard ensures the argparse block only runs when `main.py` is executed directly. When another script does `from main import something`, this block is skipped — which prevents argparse from trying to read command-line arguments at import time.
-
-## Running the Pipeline
-
-Run the complete pipeline from the repo root:
+Run from the repo root:
 
 ```bash
-python student_report/main.py --year 2019 --output student_report/reports/
+python student_report/api.py
 ```
 
-You should see progress output similar to:
+After a short pause for pagination, you should see a row and column count followed by the first five rows. The DataFrame now has exactly 9 columns — a manageable size.
 
-```
-Fetching enrollment data from Oracle...
-  165 students
-Loading middle school survey data...
-  240 survey records
-Fetching school data from API (year=2019, fips='36,34')...
-  7439 school records
-Merging and summarizing...
-  Saved student_report/reports/merged.csv
-Generating charts...
-Generating Excel report...
+### Exploring the result
 
-Done. Outputs in student_report/reports/
-  merged.csv
-  top_middle_schools.png
-  school_size_distribution.png
-  student_report.xlsx
-```
-
-Open `student_report/reports/` and verify all four output files are present. Open `student_report.xlsx` and confirm five sheets: Student Data, Top 10 Schools, By ZIP, By School Size, Charts.
-
-To run with a different year or output directory:
-
-```bash
-python student_report/main.py --year 2018 --output student_report/reports/2018/
-```
-
-To see all available options:
-
-```bash
-python student_report/main.py --help
-```
-
-## main.py — Complete File
+Add a few more lines to the `__main__` block to understand the data:
 
 ```python
-import argparse
-from pathlib import Path
-import pandas as pd
-from db import get_enrollment
-from api import get_school_data
-from transform import get_students, merge_data, summarize_top_schools, summarize_by_zip, summarize_by_size
-from report import save_top_schools_chart, save_size_chart, save_excel_report
-
-
-def main(args):
-    output = Path(args.output)
-    output.mkdir(parents=True, exist_ok=True)
-
-    print("Fetching enrollment data from Oracle...")
-    enrollment_df = get_enrollment()
-    students_df = get_students(enrollment_df)
-    print(f"  {len(students_df)} students")
-
-    print("Loading middle school survey data...")
-    survey_path = Path(__file__).parent / "data" / "survey_middle_schools.csv"
-    survey_df = pd.read_csv(survey_path, dtype={'student_id': int, 'ncessch': str})
-    print(f"  {len(survey_df)} survey records")
-
-    print(f"Fetching school data from API (year={args.year}, fips='36,34')...")
-    school_df = get_school_data(args.year)
-    print(f"  {len(school_df)} school records")
-
-    print("Merging and summarizing...")
-    merged_df = merge_data(students_df, survey_df, school_df)
-    top_schools = summarize_top_schools(merged_df)
-    zip_summary = summarize_by_zip(merged_df)
-    size_summary = summarize_by_size(merged_df)
-
-    merged_csv = output / "merged.csv"
-    merged_df.to_csv(merged_csv, index=False)
-    print(f"  Saved {merged_csv}")
-
-    print("Generating charts...")
-    chart1 = save_top_schools_chart(top_schools, output)
-    chart2 = save_size_chart(size_summary, output)
-
-    print("Generating Excel report...")
-    excel_path = save_excel_report(
-        merged_df, top_schools, zip_summary, size_summary,
-        [chart1, chart2], output,
-    )
-
-    print(f"\nDone. Outputs in {output}/")
-    print(f"  {merged_csv.name}")
-    print(f"  {chart1.name}")
-    print(f"  {chart2.name}")
-    print(f"  {excel_path.name}")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate middle school outreach report."
-    )
-    parser.add_argument('--year', type=int, default=2019, help='CCD data year (default: 2019)')
-    parser.add_argument('--output', type=str, default='reports/', help='Output directory (default: reports/)')
-    args = parser.parse_args()
-    main(args)
+if __name__ == '__main__':
+    df = get_school_data(2019)
+    print(df.shape)
+    print(df.head())
+    print()
+    df.info()
+    print()
+    print(df['school_level'].value_counts())
 ```
 
-## What's Next
+`school_level` encodes the type of school: `1` = elementary, `2` = middle, `3` = high school, `4` = other. The value counts show how many schools of each type are in the NY and NJ results. Our students attended middle schools, so most join keys will match rows where `school_level == 2` — but we keep all rows in `api.py` and let `transform.py` handle the join logic.
 
-The pipeline now runs end-to-end with a single command. A few directions to consider from here:
+Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` (Session 5) normalizes them before merging.
 
-**Scheduling** — instead of running the command manually each month, the pipeline can be scheduled to run automatically.
+### Saving to CSV
 
-On Windows, Task Scheduler provides scheduling through a GUI. Create a new task, set the trigger to monthly, and set the action to run `conda run -n student-report python student_report/main.py --year 2019 --output student_report\reports\` from the repo root directory.
+Add a `to_csv()` call to write the selected columns to a file:
 
-**Year parameter** — the `--year` argument makes it straightforward to generate reports for prior years without changing the code.
+```python
+if __name__ == '__main__':
+    df = get_school_data(2019)
+    print(df.shape)
+    print(df.head())
+    print()
+    df.info()
+    print()
+    print(df['school_level'].value_counts())
+    df.to_csv('student_report/reports/schools.csv', index=False)
+    print("Saved schools.csv")
+```
 
-**Session 13 (optional)** — if time allows, Session 13 introduces `pytest` and walks through the unit tests in `student_report/tests/`. The tests cover `transform.py` and `report.py` and can be run with:
+Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 5 will handle normalizing them.
 
-```bash
-pytest student_report/tests/ -v
+## What Changes if the API Is Different?
+
+The pipeline uses the `ccd_directory` endpoint for 2019. Swapping years is a one-character change — pass a different `year` to `get_school_data()`. The column list stays valid as long as the endpoint schema does not change across years.
+
+If a column is ever renamed or removed by the API, `df[CCD_COLUMNS]` will raise a `KeyError`. That error is the right behavior — a silent mismatch would be worse. When that happens, run `df.columns.tolist()` to inspect what the API currently returns and update `CCD_COLUMNS` accordingly.
+
+## api.py v2 — Complete File
+
+Remove the `if __name__ == '__main__':` block. The final `api.py` defines one constant and one function:
+
+```python
+from educationdata import EducationDataAPI
+
+CCD_COLUMNS = [
+    'ncessch',
+    'school_name',
+    'zip_mailing',
+    'city_location',
+    'state_location',
+    'school_level',
+    'enrollment',
+    'lowest_grade_offered',
+    'highest_grade_offered',
+]
+
+
+def get_school_data(year):
+    api = EducationDataAPI()
+    result = api.ccd_directory(year, fips='36,34')
+    df = result.to_df()
+    return df[CCD_COLUMNS].copy()
+```
+
+`main.py` (Session 13) will call `get_school_data(year)` by importing `api.py`. There is no top-level code after the import, so the import is safe — no API call happens until `get_school_data()` is explicitly called.
+
+> **Note:** `student_report/data/schools.csv` is a pre-committed static file generated from this function. Once `api.py` is wired into `main.py` in Session 13, every pipeline run regenerates it automatically — the static file is no longer needed for day-to-day use.
+
+In Session 13, `main.py` wires all four modules together. `db.py` and `api.py` replace the static files in `student_report/data/` and the pipeline runs end-to-end from a single command.
+
+## Practice Exercise
+
+> Optional enrichment — complete during the session if time allows, or finish independently on your fork.
+
+The starter script is at [`exercises/session_12_exercise.py`](../exercises/session_12_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_12_answer.py`](../exercises/session_12_answer.py).
+
+Run from the repo root:
+
+```
+python exercises/session_12_exercise.py
 ```
 
 ## Additional Resources
 
-- [Python — argparse](https://docs.python.org/3/library/argparse.html)
-- [Python — pathlib](https://docs.python.org/3/library/pathlib.html)
-- [Python — `__file__` and module paths](https://docs.python.org/3/reference/import.html)
-- *Automate the Boring Stuff with Python*, 3rd Ed. — Chapter 10 (organizing files)
+- [EducationDataAPI — GSU-Analytics/EducationDataAPI](https://github.com/GSU-Analytics/EducationDataAPI)
+- [pandas — DataFrame column selection](https://pandas.pydata.org/docs/user_guide/indexing.html)
+- [pandas — DataFrame.to_csv](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html)

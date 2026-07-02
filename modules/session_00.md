@@ -176,7 +176,7 @@ If setup is not complete before Session 1, bring your laptop and let the instruc
 
 ## VPN (Off-Campus Only)
 
-VPN is **not required** during workshop sessions. When you are on campus and connected to GSU WiFi, your computer is already within the GSU network and can reach the training database used in Sessions 8 and 9.
+VPN is **not required** during workshop sessions. When you are on campus and connected to GSU WiFi, your computer is already within the GSU network and can reach the training database used in Sessions 9 and 10.
 
 If you plan to work on exercises off-campus, you will need to connect via VPN first. Setup instructions are on the [GSU Technology — Virtual Private Network](https://technology.gsu.edu/technology-services/cybersecurity/virtual-private-network/) page.
 

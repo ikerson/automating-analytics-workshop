@@ -1,14 +1,21 @@
-# Session 11 — Working with API Results
+# Session 11 — Calling a Web API
 
 ## Introduction
 
-Session 10 called the CCD school directory API and confirmed the data is accessible. The result DataFrame has over 50 columns — far more than the pipeline needs. This session builds `api.py` v2: we define the 9 columns the pipeline uses, wrap the API call in a function, and verify the result. The pattern mirrors what we did in Session 9 for `db.py`: exploration code becomes a clean, importable module.
+`schools.csv` in `student_report/data/` was downloaded manually from the Urban Institute Education Data Portal website — the same multi-step process in the original workflow that took 15–20 minutes every month. This session automates that download. We look at what a web API is, make a raw HTTP request to see the structure, then use the `urban-education-data` package to call the Urban Institute's CCD school directory and inspect what comes back. The result is `api.py` v1 — exploration code that confirms we can reach the API and understand the data. Session 12 will refactor it into a reusable function.
+
+:::{.callout-note}
+### Reference
+*Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requests)
+:::
 
 ## Setting Up
 
-Open VS Code, activate your conda environment in the terminal, and open `student_report/api.py`. This is the exploration file you built in Session 10.
+Open VS Code and activate your conda environment in the terminal.
 
-In Git Bash:
+In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `api.py`.
+
+In the terminal:
 
 ```zsh
 conda activate student-report
@@ -16,7 +23,131 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-Your current `api.py` should look like this:
+## What Is an API?
+
+In the manual workflow, someone visits a website, finds the right download link, and saves the file. A **web API** (Application Programming Interface) is a way for programs to request the same data programmatically — no browser, no clicking, no manual download.
+
+An API exposes one or more **endpoints**: specific URLs that return data in a structured format. You send an HTTP GET request (the same kind of request a browser sends when you type a URL) and the server responds with data, usually formatted as **JSON**.
+
+**JSON** (JavaScript Object Notation) is a text format for structured data. It looks like a Python dictionary:
+
+```json
+{
+  "ncessch": 360007702472,
+  "school_name": "PS 1 The Bergen",
+  "city_location": "New York",
+  "state_location": "NY",
+  "enrollment": 312
+}
+```
+
+Each school in the CCD directory is one JSON object. The API returns a list of these objects, one per school.
+
+## Making a Raw HTTP Request
+
+The `requests` library is the standard Python tool for making HTTP requests. It is installed automatically as a dependency of the `urban-education-data` package in your conda environment.
+
+Add this to `api.py` and run it:
+
+```python
+import requests
+
+url = 'https://educationdata.urban.org/api/v1/schools/ccd/directory/2019/?fips=36&per_page=1'
+response = requests.get(url)
+print(response.status_code)
+print(response.json())
+```
+
+Run from the repo root:
+
+```bash
+python student_report/api.py
+```
+
+You should see `200` (HTTP OK) followed by a JSON object. The `.json()` method parses the response body into a Python dictionary. The structure will look like:
+
+```
+{
+  'count': 1740,
+  'next': 'https://educationdata.urban.org/api/v1/...',
+  'previous': None,
+  'results': [{ ... one school record ... }]
+}
+```
+
+The `count` field tells you how many total records match the query (1,740 New York schools in 2019). The `results` list contains the actual records — only one here because we asked for `per_page=1`. Getting all 1,740 records would require paginating through each page of results.
+
+Delete this exploration code. The `urban-education-data` package handles pagination for you — you never need to page through results manually.
+
+## The urban-education-data Package
+
+The `urban-education-data` package is a Python client for the Urban Institute Education Data Portal, built and maintained by GSU Analytics. It is already installed in your conda environment via `environment.yml`.
+
+It wraps the raw HTTP calls and automatic pagination into a single method call:
+
+```python
+from educationdata import EducationDataAPI
+
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips='36,34')
+```
+
+`fips='36,34'` requests schools in both New York (36) and New Jersey (34). The result is an `EducationDataResult` object — not yet a DataFrame. To get a DataFrame, call `.to_df()`:
+
+```python
+df = result.to_df()
+```
+
+The package fetches all pages automatically. For NY and NJ middle schools in 2019, that is several thousand records — the call may take a few seconds.
+
+> **Important:** `fips='36,34'` must be a comma-separated **string**. Passing a Python list (`fips=[36, 34]`) returns an HTTP 400 error. This is a quirk of how the API parses the parameter.
+
+## Building api.py v1
+
+### Calling the API
+
+Replace the contents of `api.py` with:
+
+```python
+from educationdata import EducationDataAPI
+
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips='36,34')
+print(result.count)
+```
+
+`result.count` is the total number of records returned — useful for a quick sanity check before pulling everything into a DataFrame.
+
+Run it:
+
+```bash
+python student_report/api.py
+```
+
+You should see a number in the thousands. This is the total count of NY and NJ schools matching the CCD directory for 2019.
+
+### Converting to a DataFrame
+
+Now convert the result and inspect it:
+
+```python
+from educationdata import EducationDataAPI
+
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips='36,34')
+print(result.count)
+
+df = result.to_df()
+print(df.head())
+print()
+df.info()
+```
+
+Run again. After a short pause for pagination, you will see the first five rows and a column summary. The DataFrame has many columns — over 50. The next session will narrow it to the 9 columns the pipeline actually uses.
+
+### Exploring the columns
+
+Add `.describe()` and a column list to get a better picture:
 
 ```python
 from educationdata import EducationDataAPI
@@ -35,145 +166,37 @@ print()
 print(df.columns.tolist())
 ```
 
-Today we replace this with a function that returns only the columns the pipeline needs.
+Run again. The column list will be long. Note the columns the pipeline cares about: `ncessch`, `school_name`, `zip_mailing`, `city_location`, `state_location`, `school_level`, `enrollment`, `lowest_grade_offered`, `highest_grade_offered`.
 
-## Building api.py v2
+Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 5.
 
-### Clearing the exploration code and defining the column list
+## api.py v1 — Complete File
 
-Delete everything below the import. Then add a `CCD_COLUMNS` list that names the 9 columns the pipeline uses:
-
-```python
-from educationdata import EducationDataAPI
-
-CCD_COLUMNS = [
-    'ncessch',
-    'school_name',
-    'zip_mailing',
-    'city_location',
-    'state_location',
-    'school_level',
-    'enrollment',
-    'lowest_grade_offered',
-    'highest_grade_offered',
-]
-```
-
-Storing the column list as a named constant serves two purposes: the function below stays short and readable, and any future change to the columns — adding one, removing one — happens in one place.
-
-### Writing the function
-
-Add `get_school_data()` below the constant:
-
-```python
-def get_school_data(year):
-    api = EducationDataAPI()
-    result = api.ccd_directory(year, fips='36,34')
-    df = result.to_df()
-    return df[CCD_COLUMNS].copy()
-```
-
-`df[CCD_COLUMNS]` selects only the 9 columns in the list. `.copy()` returns an independent DataFrame so that later operations on the result do not inadvertently modify the original API data.
-
-The `year` parameter makes the function reusable — `get_school_data(2018)` returns 2018 data without changing anything else. The `fips='36,34'` is hardcoded because the pipeline always targets New York and New Jersey.
-
-### Running the function
-
-Add a `if __name__ == '__main__':` block to test the function without making `api.py` run on every import:
-
-```python
-if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
-```
-
-Run from the repo root:
-
-```bash
-python student_report/api.py
-```
-
-After a short pause for pagination, you should see a row and column count followed by the first five rows. The DataFrame now has exactly 9 columns — a manageable size.
-
-### Exploring the result
-
-Add a few more lines to the `__main__` block to understand the data:
-
-```python
-if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
-    print()
-    print(df['school_level'].value_counts())
-```
-
-`school_level` encodes the type of school: `1` = elementary, `2` = middle, `3` = high school, `4` = other. The value counts show how many schools of each type are in the NY and NJ results. Our students attended middle schools, so most join keys will match rows where `school_level == 2` — but we keep all rows in `api.py` and let `transform.py` handle the join logic.
-
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` (Session 4) normalizes them before merging.
-
-### Saving to CSV
-
-Add a `to_csv()` call to write the selected columns to a file:
-
-```python
-if __name__ == '__main__':
-    df = get_school_data(2019)
-    print(df.shape)
-    print(df.head())
-    print()
-    df.info()
-    print()
-    print(df['school_level'].value_counts())
-    df.to_csv('student_report/reports/schools.csv', index=False)
-    print("Saved schools.csv")
-```
-
-Run again and open `student_report/reports/schools.csv`. Verify that only the 9 columns appear and that the float IDs are present. Session 4 will handle normalizing them.
-
-## What Changes if the API Is Different?
-
-The pipeline uses the `ccd_directory` endpoint for 2019. Swapping years is a one-character change — pass a different `year` to `get_school_data()`. The column list stays valid as long as the endpoint schema does not change across years.
-
-If a column is ever renamed or removed by the API, `df[CCD_COLUMNS]` will raise a `KeyError`. That error is the right behavior — a silent mismatch would be worse. When that happens, run `df.columns.tolist()` to inspect what the API currently returns and update `CCD_COLUMNS` accordingly.
-
-## api.py v2 — Complete File
-
-Remove the `if __name__ == '__main__':` block. The final `api.py` defines one constant and one function:
+Here is the complete `api.py` v1:
 
 ```python
 from educationdata import EducationDataAPI
 
-CCD_COLUMNS = [
-    'ncessch',
-    'school_name',
-    'zip_mailing',
-    'city_location',
-    'state_location',
-    'school_level',
-    'enrollment',
-    'lowest_grade_offered',
-    'highest_grade_offered',
-]
+api = EducationDataAPI()
+result = api.ccd_directory(2019, fips='36,34')
+print(result.count)
 
-
-def get_school_data(year):
-    api = EducationDataAPI()
-    result = api.ccd_directory(year, fips='36,34')
-    df = result.to_df()
-    return df[CCD_COLUMNS].copy()
+df = result.to_df()
+print(df.head())
+print()
+df.info()
+print()
+print(df.describe())
+print()
+print(df.columns.tolist())
 ```
 
-`main.py` (Session 12) will call `get_school_data(year)` by importing `api.py`. There is no top-level code after the import, so the import is safe — no API call happens until `get_school_data()` is explicitly called.
+In Session 12 we will:
 
-> **Note:** `student_report/data/schools.csv` is a pre-committed static file generated from this function. Once `api.py` is wired into `main.py` in Session 12, every pipeline run regenerates it automatically — the static file is no longer needed for day-to-day use.
-
-In Session 12, `main.py` wires all four modules together. `db.py` and `api.py` replace the static files in `student_report/data/` and the pipeline runs end-to-end from a single command.
+1. Define a `CCD_COLUMNS` list with the 9 columns the pipeline needs
+2. Wrap the API call in a `get_school_data(year)` function
+3. Return only the selected columns
+4. Remove the top-level print statements so `api.py` is safe to import from `main.py`
 
 ## Practice Exercise
 
@@ -190,5 +213,6 @@ python exercises/session_11_exercise.py
 ## Additional Resources
 
 - [EducationDataAPI — GSU-Analytics/EducationDataAPI](https://github.com/GSU-Analytics/EducationDataAPI)
-- [pandas — DataFrame column selection](https://pandas.pydata.org/docs/user_guide/indexing.html)
-- [pandas — DataFrame.to_csv](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html)
+- [Urban Institute Education Data Portal](https://educationdata.urban.org/)
+- [requests documentation](https://requests.readthedocs.io/)
+- *Automate the Boring Stuff with Python*, Chapter 12 — Downloading Files from the Web

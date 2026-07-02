@@ -4,7 +4,7 @@
 
 Every month, someone on your team opens SQL Developer, runs an enrollment query, downloads the results, pulls school directory data from the Urban Institute website, pastes everything into Excel, writes formulas, and manually builds a report. It takes two or more hours and introduces errors every time.
 
-This workshop replaces that process with a single Python command. By the end of the twelve core sessions, you will have built the tool yourself, from scratch, one piece at a time.
+This workshop replaces that process with a single Python command. By the end of the thirteen core sessions, you will have built the tool yourself, from scratch, one piece at a time.
 
 This first session is an orientation. You will see the finished tool run live, understand what each piece of the stack does, and learn how the workshop is organized.
 
@@ -31,7 +31,7 @@ Don't get frustrated if you encounter many concepts that you don't understand. B
 
 ### How This Workshop Teaches
 
-Sessions follow a code-along format: the instructor introduces code, you follow on your own machine. Each session adds one file or one function to the project. By Session 12, you will have built the complete pipeline.
+Sessions follow a code-along format: the instructor introduces code, you follow on your own machine. Each session adds one file or one function to the project. By Session 13, you will have built the complete pipeline.
 
 A few things to keep in mind:
 
@@ -91,7 +91,7 @@ The problems stack up:
 
 This workshop replaces the manual process in two deliberate phases.
 
-**Phase 1 (Sessions 3–7):** Three CSV files are pre-loaded into the repo: enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website and email. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 7, you will be producing the full report from a two-line command.
+**Phase 1 (Sessions 3–8):** Three CSV files are pre-loaded into the repo: enrollment data, a school directory, and a survey. They represent the files someone would have exported from SQL Developer and downloaded from the Urban Institute website and email. You will build the Python pipeline that loads, merges, transforms, and reports on them. By the end of Session 8, you will be producing the full report from a two-line command.
 
 **Phase 1 — provided CSV files**
 
@@ -124,7 +124,7 @@ data/enrollment.csv    data/survey_middle_schools.csv  data/schools.csv
                                 - Charts
 ```
 
-**Phase 2 (Sessions 8–11):** You will build the code that automates where those CSV files come from: a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 12, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
+**Phase 2 (Sessions 9–12):** You will build the code that automates where those CSV files come from: a database connection to Oracle and an API call to the Urban Institute. When `main.py` wires everything together in Session 13, the pipeline fetches fresh data and produces the full report end-to-end with no manual steps.
 
 **Phase 2 — automated pipeline**
 
@@ -162,7 +162,7 @@ Oracle EC2                    survey CSV                Urban Institute API
 
 ## What We'll Build
 
-By Session 12 you will run one command:
+By Session 13 you will run one command:
 
 ```
 python main.py --year 2019 --output reports/
@@ -200,20 +200,21 @@ You do not need to follow along on your own computer today. This session is obse
 | 1 | The problem + tooling overview | (this session — observation) |
 | 2 | Clone, build, and run | Clone your fork, create the conda environment, first commit and push |
 | **— Phase 1: Working with Provided Data —** | | |
-| 3 | Pandas and working with data | Load and explore all three provided CSVs |
-| 4 | Merging the three sources | `transform.py` v1 — three-way merge from provided CSVs |
-| 5 | Aggregations and summaries | `transform.py` v2 — groupby, pd.cut |
-| 6 | Creating visualizations | `report.py` v1 — two charts |
-| 7 | Generating the Excel report | `report.py` v2 — five-sheet workbook; run Phase 1 end-to-end |
+| 3 | Python foundations | Core Python primer: variables, loops, functions |
+| 4 | Pandas and working with data | Load and explore all three provided CSVs |
+| 5 | Merging the three sources | `transform.py` v1 — three-way merge from provided CSVs |
+| 6 | Aggregations and summaries | `transform.py` v2 — groupby, pd.cut |
+| 7 | Creating visualizations | `report.py` v1 — two charts |
+| 8 | Generating the Excel report | `report.py` v2 — five-sheet workbook; run Phase 1 end-to-end |
 | **— Phase 2: Automating Data Collection —** | | |
-| 8 | Connecting to the database | `db.py` v1 — raw Oracle connection |
-| 9 | Working with database results | `db.py` v2 — `conn.execute_query()`, save to CSV |
-| 10 | Calling a web API | `api.py` v1 — fetch school directory |
-| 11 | Working with API results | `api.py` v2 — select columns, save to CSV |
-| 12 | The automated pipeline | `main.py` — wire it all together |
-| 13 *(optional)* | Unit testing | `tests/` — pytest basics |
+| 9 | Connecting to the database | `db.py` v1 — raw Oracle connection |
+| 10 | Working with database results | `db.py` v2 — `conn.execute_query()`, save to CSV |
+| 11 | Calling a web API | `api.py` v1 — fetch school directory |
+| 12 | Working with API results | `api.py` v2 — select columns, save to CSV |
+| 13 | The automated pipeline | `main.py` — wire it all together |
+| 14 *(optional)* | Unit testing | `tests/` — pytest basics |
 
-Sessions 8 and 9 require a connection to the GSU network. On campus, GSU WiFi is sufficient. Off campus, connect to the GSU VPN first.
+Sessions 9 and 10 require a connection to the GSU network. On campus, GSU WiFi is sufficient. Off campus, connect to the GSU VPN first.
 
 ---
 

@@ -1,19 +1,21 @@
-# Session 7 Exercise — Generating the Excel Report
+# Session 7 Exercise — Creating Visualizations
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
 ## Your Task
 
-1. Load `exercises/data/merged_contacts.csv` (produced in the Session 4 exercise)
-2. Load `exercises/data/size_summary.csv` (produced in the Session 5 exercise)
-3. Write both DataFrames to a single Excel file `exercises/data/contacts_report.xlsx`
-   - Sheet 1: `"Contacts"` — the merged contacts data
-   - Sheet 2: `"By School Size"` — the size summary
-4. Use `index=False` on both sheets
+1. Load `exercises/data/merged_contacts.csv` (produced in the Session 5 exercise)
+2. Drop rows with no school match (`school_name` is NaN)
+3. Count students per school using `groupby` + `agg`, sort descending, keep top 5
+4. Create a horizontal bar chart (`barh`) of top 5 schools by student count
+5. Label the x-axis "Number of Contacts", add the title "Top 5 Middle Schools by Contacts"
+6. Invert the y-axis so the school with the most contacts appears at the top
+7. Call `plt.tight_layout()` and save the chart to `exercises/data/top_schools_chart.png`
+8. Call `plt.close()` after saving
 
 ## Starter Script
 
-Open [`session_07_exercise.py`](session_07_exercise.py) and fill in the blanks marked with `# TODO:`. Note: this exercise predefines `___ = None` at the top — a missed blank will raise a clear error rather than a silent one. If you get stuck, the completed version is at [`session_07_answer.py`](session_07_answer.py).
+Open [`session_07_exercise.py`](session_07_exercise.py) and fill in the blanks marked with `# TODO:`. If you get stuck, the completed version is at [`session_07_answer.py`](session_07_answer.py).
 
 Run from the repo root:
 

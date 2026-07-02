@@ -1,34 +1,30 @@
-# Session 3 Exercise — Pandas Basics
+# Before You Begin Exercise - Python Fundamentals
 #
 # Task:
-#   1. Load exercises/data/outreach_contacts.csv
-#   2. Print the first 5 rows and a column summary
-#   3. Select only these columns: student_id, first_name, last_name, phone, zip_code
-#   4. Drop rows where phone is missing
-#   5. Print how many rows remain
-#   6. Save the result to exercises/data/outreach_contacts_cleaned.csv
-#
+# Write a script that:
+# 
+# 1. Defines a list of at least five numeric exam scores.
+# 2. Writes a function `passing_scores(scores, cutoff)` that loops over the list and returns a new list containing only the scores at or above `cutoff`.
+# 3. Calls the function with a cutoff of `70` and prints the result.
+# 4. Checks to see if there are any students who got the same score, printing the result.
+# 
 # Run from the repo root:
 #   python exercises/session_03_exercise.py
 
-import pandas as pd
+# TODO: Make a list of exam scores
+exam_scores = "___"
 
-# TODO: Load the CSV file
-df = pd.read_csv("___")
+# TODO: Define a function that loops over the scores
+def passing_scores(scores, cutoff):
+    scores_above_cutoff = "___"
+    ...
+    return scores_above_cutoff
 
-# 2. Inspect the data
-print(df.head())
-print(df.info())
+# TODO: Call the function
+scores_above_or_at_70 = passing_scores("___", "___")
+print(f'Scores greater than or equal to 70: {"___"}')
 
-# TODO: Select only the five columns listed in the task
-df = df[["___", "___", "___", "___", "___"]]
-
-# TODO: Drop rows where phone is missing
-df = df.dropna(subset=["___"])
-
-print(f"{len(df)} rows remaining after dropping missing phone numbers.")
-
-# TODO: Save the result — no row index
-df.to_csv("___", index=False)
-
-print("Done.")
+# TODO: Check to see if any students got the same score
+## HINT: You might find the len() function useful!
+repeat_score = "___"
+print(f'Any students with the same score?: {"___"}')

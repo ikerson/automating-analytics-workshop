@@ -1,16 +1,14 @@
-# Session 6 — Creating Visualizations
+# Session 6 — Aggregations and Summary Statistics
 
 ## Introduction
 
-`transform.py` is complete. The pipeline now produces three summary DataFrames — top schools, by ZIP, and by school size — plus the full merged DataFrame. This session builds `report.py` v1: two functions that turn those summaries into saved chart files. By the end of the session, two `.png` files are written to the reports directory and the chart-generation layer of the pipeline is done.
+Session 5 produced a merged DataFrame: one row per student, enriched with their middle school's name, city, ZIP, and enrollment figure where a survey match existed. The data is now ready to summarize. This session builds `transform.py` v2: four additions — an enrollment size bucket column added to `merge_data()`, and three new functions that compute the summaries the report needs. At the end of this session, `transform.py` is complete.
 
 ## Setting Up
 
-Open VS Code and activate your conda environment in the terminal.
+Open VS Code, activate your conda environment in the terminal, and open `student_report/transform.py`.
 
-In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `report.py`.
-
-In the terminal:
+In Git Bash:
 
 ```zsh
 conda activate student-report
@@ -18,155 +16,219 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-> **No VPN or prior sessions required.** The `__main__` block imports from `transform.py` and loads the pre-committed CSV files from `student_report/data/`.
+> **No VPN or prior sessions required.** All three CSV files are pre-committed to `student_report/data/` — no setup steps needed beyond activating the conda environment.
 
-## Building report.py v1
+## Building transform.py v2
 
-### Starting the file
+### Bucketing school enrollment with pd.cut()
 
-Create `student_report/report.py` and add the imports:
+The merged DataFrame has an `enrollment` column — the total number of students at each middle school. Raw enrollment figures are useful for sorting, but the report needs to group schools into three readable categories: Small, Medium, and Large. `pd.cut()` does this: it takes a continuous numeric column and divides it into labeled bins.
 
-```python
-import matplotlib.pyplot as plt
-import pandas as pd
-from pathlib import Path
-```
-
-`matplotlib` is already installed in the conda environment. `pd` and `Path` are included because the `__main__` block uses them; neither is used by the two chart functions directly.
-
-### save_top_schools_chart()
-
-Add `save_top_schools_chart()` below the imports:
+Update `merge_data()` to add the `school_size` assignment before the `return` statement:
 
 ```python
-def save_top_schools_chart(top_schools_df, output_dir):
-    path = Path(output_dir) / "top_middle_schools.png"
-    fig, ax = plt.subplots(figsize=(10, 6)) # <1>
-    ax.barh(                                  # <2>
-        top_schools_df['middle_school_name'], # <2>
-        top_schools_df['student_count'],      # <2>
-        color='steelblue'                     # <2>
-    )                                         # <2>
-    ax.set_xlabel("Number of Students") # <3>
-    ax.set_title("Top 10 Middle Schools by Student Count") # <4>
-    ax.invert_yaxis() # <5>
-    plt.tight_layout() # <6>
-    plt.savefig(path) # <7>
-    plt.close() # <8>
-    return path # <9>
-```
+def merge_data(students_df, survey_df, school_df):
+    students_df = students_df.copy()
+    survey_df = survey_df.copy()
+    school_df = school_df.copy()
 
-1. Creates a figure and a single set of axes. `fig` is the overall container; `ax` is the drawing area where the chart is placed. `figsize=(10, 6)` sets the width and height in inches — wide enough to show school names without overlap.
-2. Draws a horizontal bar chart. The first argument is the y-axis labels (`middle_school_name`), the second is the bar lengths (`student_count`). Horizontal bars are the right choice here because school names are long strings that would overlap on a vertical chart's x-axis.
-3. Labels the x-axis. On a horizontal bar chart the x-axis carries the numeric values, so this is the axis that needs a unit label.
-4. Adds a title above the chart.
-5. By default `barh` places the first row at the bottom of the chart. After sorting descending in `summarize_top_schools()`, the school with the highest count is in the first row — which would end up at the bottom without this call. `invert_yaxis()` flips the order so the largest bar appears at the top, which is the natural reading direction for a ranked list.
-6. Adjusts spacing so axis labels and the title are not clipped at the figure edges. It should be called after all labels are set and before saving.
-7. Writes the figure to a file. The format is inferred from the file extension (`.png`). The file is written to `output_dir` regardless of the current working directory.
-8. Releases the figure from memory. Without this call, every chart created in a session accumulates in memory, and matplotlib will print a warning after 20 open figures. Always call `plt.close()` immediately after saving.
-9. Returns the saved file path so the caller (later, `main.py`) can log or display it.
-
-### save_size_chart()
-
-Add `save_size_chart()` below `save_top_schools_chart()`. The structure mirrors `save_top_schools_chart()` with a few differences:
-
-```python
-def save_size_chart(size_df, output_dir):
-    path = Path(output_dir) / "school_size_distribution.png"
-    fig, ax = plt.subplots(figsize=(7, 5))
-    ax.bar(                                   # <1>
-        size_df['school_size'].astype(str),   # <2>
-        size_df['student_count'],
-        color='teal'
+    students_df['zip'] = students_df['zip'].astype(str).str.zfill(5)
+    school_df['zip_mailing'] = (
+        school_df['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)
     )
-    ax.set_xlabel("School Size")
-    ax.set_ylabel("Number of Students")       # <3>
-    ax.set_title("Students by Middle School Size")
-    plt.tight_layout()
-    plt.savefig(path)
-    plt.close()
-    return path
+    survey_df['ncessch'] = survey_df['ncessch'].astype(str).str.split('.').str[0]
+    school_df['ncessch'] = school_df['ncessch'].astype(str).str.split('.').str[0]
+
+    merged = students_df.merge(survey_df, on='student_id', how='left')
+    merged = merged.merge(school_df, on='ncessch', how='left')
+
+    merged['school_size'] = pd.cut(
+        merged['enrollment'], # <1>
+        bins=[0, 300, 700, float('inf')], # <2>
+        labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'], # <3>
+    )
+
+    return merged
 ```
 
-1. **`ax.bar()` instead of `ax.barh()`** — vertical bars. The three size category labels are short (`Small`, `Medium`, `Large`) and fit comfortably on a horizontal x-axis, so there is no reason to rotate the chart.
-2. **`size_df['school_size'].astype(str)`** — `school_size` is a pandas `Categorical` column (created by `pd.cut()` in Session 5). matplotlib does not know how to place categorical tick marks automatically, so converting to plain strings produces clean, evenly spaced labels on the x-axis.
-3. **`ax.set_ylabel("Number of Students")`** — a vertical chart carries the numeric values on the y-axis, which now needs the unit label. The x-axis label (`ax.set_xlabel`) describes the categories.
+1. The input series. Students with no survey match have `NaN` enrollment; `pd.cut()` leaves those rows as `NaN` in the output column.
+2. Three intervals: (0, 300], (300, 700], (700, ∞). Each value in the list is the right edge of the bin it closes.
+3. One label per bin. The result is a pandas `Categorical` column — a dtype that stores a fixed, ordered set of possible values rather than arbitrary strings.
 
-No `invert_yaxis()` call — the three size bins are not a ranked list, so the default bottom-to-top direction is fine.
+The new `school_size` column travels with the DataFrame into the summarize functions below.
+
+### summarize_top_schools()
+
+Add `summarize_top_schools()` below `merge_data()`:
+
+```python
+def summarize_top_schools(merged_df):
+    matched = merged_df.dropna(subset=['middle_school_name'])
+    return (
+        matched.groupby(['middle_school_name', 'city_location', 'zip_mailing', 'school_size'])
+        .agg(student_count=('student_id', 'count'), school_enrollment=('enrollment', 'first'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+        .head(10)
+    )
+```
+
+Walk through each step:
+
+**`.dropna(subset=['middle_school_name'])`** — students with no survey match have `NaN` for `middle_school_name`. Dropping them before grouping prevents a `NaN` group from appearing in the result.
+
+**`.groupby([...])`** — groups by four columns that together identify a school. Including `city_location`, `zip_mailing`, and `school_size` in the groupby key carries them into the result without a separate join — every student at the same school has the same values for those columns, so grouping on them is safe and keeps the result readable.
+
+**`.agg(student_count=..., school_enrollment=...)`** — named aggregation syntax: each keyword argument becomes a column name in the result. `('student_id', 'count')` counts the rows in the group; `('enrollment', 'first')` retrieves the enrollment figure — the same on every row in the group, so `'first'` is sufficient.
+
+**`.reset_index()`** — after a groupby, the group keys become the index. `.reset_index()` promotes them back to regular columns so the result is a flat DataFrame.
+
+**`.sort_values('student_count', ascending=False).head(10)`** — sort from largest to smallest and keep the top 10.
+
+### summarize_by_zip()
+
+Add `summarize_by_zip()` below `summarize_top_schools()`:
+
+```python
+def summarize_by_zip(merged_df):
+    matched = merged_df.dropna(subset=['zip_mailing'])
+    return (
+        matched.groupby(['zip_mailing', 'city_location'])
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+    )
+```
+
+This follows the same pattern as `summarize_top_schools()` but groups by ZIP code and city instead of school name. The result answers a geographic question: which ZIP codes do the most students come from?
+
+`zip_mailing` is the school's mailing ZIP — it identifies the neighborhood where the middle school sits, which is the relevant geography for outreach targeting.
+
+### summarize_by_size()
+
+Add `summarize_by_size()` below `summarize_by_zip()`:
+
+```python
+def summarize_by_size(merged_df):
+    return (
+        merged_df.groupby('school_size', observed=True)
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+    )
+```
+
+**`observed=True`** is required when grouping by a `Categorical` column — which is what `pd.cut()` produces. Without it, pandas includes a row for every possible category label even if no students belong to it, and raises a `FutureWarning` in pandas versions before 2.0. `observed=True` tells pandas to include only categories that actually appear in the data.
+
+This function does not call `.dropna()` before grouping. Students with `NaN` enrollment have `NaN` school_size and are automatically excluded from all bins — no extra filtering is needed.
 
 ### Testing with a __main__ block
 
-Add a `if __name__ == '__main__':` block that imports from `transform.py` and produces both charts:
+Add a `if __name__ == '__main__':` block to run all five functions and inspect the results:
 
 ```python
 if __name__ == '__main__':
-    from transform import get_students, merge_data, summarize_top_schools, summarize_by_size
-
     enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
     survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
     school_df = pd.read_csv('student_report/data/schools.csv')
 
     students = get_students(enrollment_df)
     merged = merge_data(students, survey_df, school_df)
+
     top_schools = summarize_top_schools(merged)
+    print("Top 10 schools:")
+    print(top_schools)
+    print()
+
+    zip_summary = summarize_by_zip(merged)
+    print("By ZIP:")
+    print(zip_summary.head())
+    print()
+
     size_summary = summarize_by_size(merged)
-
-    output_dir = 'student_report/reports'
-    chart1 = save_top_schools_chart(top_schools, output_dir)
-    chart2 = save_size_chart(size_summary, output_dir)
-    print(f"Saved: {chart1}")
-    print(f"Saved: {chart2}")
+    print("By school size:")
+    print(size_summary)
 ```
-
-The `from transform import ...` line works because running `python student_report/report.py` adds the `student_report/` directory to Python's module search path automatically, making `transform.py` importable by name.
 
 Run from the repo root:
 
 ```bash
-python student_report/report.py
+python student_report/transform.py
 ```
 
-You should see two file paths printed. Open `student_report/reports/` and confirm that `top_middle_schools.png` and `school_size_distribution.png` were created or updated. Open each file to verify the charts look right — the horizontal bar chart should show schools ranked largest at the top; the vertical bar chart should show three labeled columns.
+The top schools table shows the 10 middle schools with the highest student counts, ranked largest first. The size summary should show three rows — one per bucket — with no empty categories. If a `FutureWarning` appears, verify that `observed=True` is present in `summarize_by_size()`.
 
-## report.py v1 — Complete File
+## transform.py v2 — Complete File
 
-Remove the `if __name__ == '__main__':` block. The final `report.py` v1 defines three imports and two functions:
+Remove the `if __name__ == '__main__':` block. The final `transform.py` defines one import and five functions:
 
 ```python
-import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
 
 
-def save_top_schools_chart(top_schools_df, output_dir):
-    path = Path(output_dir) / "top_middle_schools.png"
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.barh(top_schools_df['middle_school_name'], top_schools_df['student_count'], color='steelblue')
-    ax.set_xlabel("Number of Students")
-    ax.set_title("Top 10 Middle Schools by Student Count")
-    ax.invert_yaxis()
-    plt.tight_layout()
-    plt.savefig(path)
-    plt.close()
-    return path
+def get_students(enrollment_df):
+    return (
+        enrollment_df[['student_id', 'first_name', 'last_name', 'zip', 'city', 'state']]
+        .drop_duplicates(subset=['student_id'])
+        .copy()
+    )
 
 
-def save_size_chart(size_df, output_dir):
-    path = Path(output_dir) / "school_size_distribution.png"
-    fig, ax = plt.subplots(figsize=(7, 5))
-    ax.bar(size_df['school_size'].astype(str), size_df['student_count'], color='teal')
-    ax.set_xlabel("School Size")
-    ax.set_ylabel("Number of Students")
-    ax.set_title("Students by Middle School Size")
-    plt.tight_layout()
-    plt.savefig(path)
-    plt.close()
-    return path
+def merge_data(students_df, survey_df, school_df):
+    students_df = students_df.copy()
+    survey_df = survey_df.copy()
+    school_df = school_df.copy()
+
+    students_df['zip'] = students_df['zip'].astype(str).str.zfill(5)
+    school_df['zip_mailing'] = (
+        school_df['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)
+    )
+    survey_df['ncessch'] = survey_df['ncessch'].astype(str).str.split('.').str[0]
+    school_df['ncessch'] = school_df['ncessch'].astype(str).str.split('.').str[0]
+
+    merged = students_df.merge(survey_df, on='student_id', how='left')
+    merged = merged.merge(school_df, on='ncessch', how='left')
+
+    merged['school_size'] = pd.cut(
+        merged['enrollment'],
+        bins=[0, 300, 700, float('inf')],
+        labels=['Small (<300)', 'Medium (300-700)', 'Large (700+)'],
+    )
+
+    return merged
+
+
+def summarize_top_schools(merged_df):
+    matched = merged_df.dropna(subset=['middle_school_name'])
+    return (
+        matched.groupby(['middle_school_name', 'city_location', 'zip_mailing', 'school_size'])
+        .agg(student_count=('student_id', 'count'), school_enrollment=('enrollment', 'first'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+        .head(10)
+    )
+
+
+def summarize_by_zip(merged_df):
+    matched = merged_df.dropna(subset=['zip_mailing'])
+    return (
+        matched.groupby(['zip_mailing', 'city_location'])
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+        .sort_values('student_count', ascending=False)
+    )
+
+
+def summarize_by_size(merged_df):
+    return (
+        merged_df.groupby('school_size', observed=True)
+        .agg(student_count=('student_id', 'count'))
+        .reset_index()
+    )
 ```
 
-`main.py` (Session 12) will call both functions by importing `report.py`. There is no top-level code after the imports, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
+`transform.py` is now complete. `main.py` (Session 13) will call all five functions by importing this module. There is no top-level code after the import, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
 
-In Session 7, we add `save_excel_report()` to `report.py`: a function that writes the full five-sheet Excel workbook and embeds the saved chart images.
+In Session 7, we build `report.py` v1: the two chart functions that visualize the top schools and size distribution summaries.
 
 ## Practice Exercise
 
@@ -182,8 +244,8 @@ python exercises/session_06_exercise.py
 
 ## Additional Resources
 
-- [matplotlib — Horizontal bar chart (barh)](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.barh.html)
-- [matplotlib — Bar chart (bar)](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.bar.html)
-- [matplotlib — savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html)
-- [matplotlib — Pyplot tutorial](https://matplotlib.org/stable/tutorials/pyplot.html)
-- *Automate the Boring Stuff with Python*, 3rd Ed. — Chapter 17 (working with files and directories)
+- [pandas — pd.cut](https://pandas.pydata.org/docs/reference/api/pandas.cut.html)
+- [pandas — DataFrame.groupby](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.groupby.html)
+- [pandas — GroupBy.agg](https://pandas.pydata.org/docs/reference/api/pandas.core.groupby.DataFrameGroupBy.aggregate.html)
+- [pandas — Series.value_counts](https://pandas.pydata.org/docs/reference/api/pandas.Series.value_counts.html)
+- [pandas — Categorical data](https://pandas.pydata.org/docs/user_guide/categorical.html)

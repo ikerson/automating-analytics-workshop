@@ -1,36 +1,40 @@
-# Session 10 Exercise — Calling the Education Data API
+# Session 10 Exercise — Working with Database Results
 #
 # Task:
-#   1. Create an EducationDataAPI instance
-#   2. Call ccd_directory for the year 2018 with fips='36,34'
-#   3. Print result.count — how many schools are returned?
-#   4. Convert to a DataFrame with .to_df()
-#   5. Print .head() and .info()
-#   6. Print the list of column names
+#   1. Load student_report/.env
+#   2. Connect to Oracle using LightOracleConnection
+#   3. Query all rows from the course table
+#   4. Normalize column names to lowercase
+#   5. Filter to courses with cost > 1000
+#   6. Save the filtered result to exercises/data/courses_over_1000.csv (no index)
+#   7. Print how many courses remain after filtering
 #
 # Run from the repo root:
 #   python exercises/session_10_exercise.py
+#
+# NOTE: VPN required — the Oracle server is only reachable on the GSU network.
 
-from educationdata import EducationDataAPI
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-# 1. Create an API instance
-api = EducationDataAPI()
+# 1. Load credentials
+load_dotenv(Path("student_report") / ".env")
 
-# TODO: Call ccd_directory for 2018 — note: fips must be a string, not a list
-result = api.ccd_directory(2018, fips="___")
+# 2. Connect to Oracle
+conn = LightOracleConnection()
 
-# 3. How many schools are returned?
-print(result.count)
+# TODO: Query all rows from the course table
+df = conn.execute_query("___")
 
-# TODO: Convert to a DataFrame
-df = ___.to_df()
+# 4. Normalize column names to lowercase
+df.columns = df.columns.str.lower()
 
-# 5. Inspect the results
-print(df.___())
-print()
-df.info()
-print()
+# TODO: Filter to courses with cost > 1000
+df = df[df["___"] > ___]
 
-# TODO: Print the list of column names
-print(df.columns.tolist())
+# TODO: Save to exercises/data/courses_over_1000.csv — no row index
+df.to_csv(Path("exercises") / "data" / "___", index=False)
+
+print(f"Courses with cost > 1000: {len(___)}")
 print("Done.")

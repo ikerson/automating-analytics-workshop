@@ -1,17 +1,19 @@
-# Session 10 Exercise — Calling the Education Data API (Answer)
+# Session 10 Exercise — Working with Database Results (Answer)
 #
 # Run from the repo root:
 #   python exercises/session_10_answer.py
+#
+# NOTE: VPN required — the Oracle server is only reachable on the GSU network.
 
-from educationdata import EducationDataAPI
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-api = EducationDataAPI()
-result = api.ccd_directory(2018, fips='36,34')
-print(result.count)
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.columns.tolist())
+load_dotenv(Path('student_report') / '.env')
+conn = LightOracleConnection()
+df = conn.execute_query("SELECT * FROM course")
+df.columns = df.columns.str.lower()
+df = df[df['cost'] > 1000]
+df.to_csv(Path('exercises') / 'data' / 'courses_over_1000.csv', index=False)
+print(f"Courses with cost > 1000: {len(df)}")
 print("Done.")

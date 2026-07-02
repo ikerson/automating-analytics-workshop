@@ -1,16 +1,14 @@
-# Session 4 — Merging the Three Sources
+# Session 4 — Pandas and Working with Data
 
 ## Introduction
 
-Three CSV files are already in `student_report/data/`: enrollment data, a CCD school directory, and a survey linking students to the middle schools they attended. This session builds `transform.py` v1 — two functions that merge all three sources into a single DataFrame with one row per student, enriched with middle school name, city, ZIP, and enrollment size.
+Every session from here on involves loading, inspecting, and transforming data. This session introduces pandas — the Python library that makes all of that possible — using the survey CSV that sits at the heart of the workshop pipeline. You will learn the four operations you will use in every session that follows: loading a file, inspecting what is in it, selecting columns, and filtering rows. You will also write your first reusable function.
 
 ## Setting Up
 
-Open VS Code and activate your conda environment in the terminal.
+Open VS Code, activate your conda environment in the terminal, and open or clear `scratch.py` in the repo root. You will build the code-along script in that file, running it after each addition.
 
-In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `transform.py`.
-
-In the terminal:
+In Git Bash:
 
 ```zsh
 conda activate student-report
@@ -18,252 +16,218 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-> **No VPN or prior sessions required.** All three CSV files are pre-committed to `student_report/data/` — no setup steps needed beyond activating the conda environment.
+## What Is pandas?
 
-## The Three Sources
+pandas is a Python library for working with tabular data. When you load a CSV, pandas gives you a **DataFrame** — a table with named columns and numbered rows, similar to an Excel worksheet.
 
-Before writing any code, it helps to know exactly what each dataset contributes and how they connect.
+A single column of a DataFrame is called a **Series** — a list of values with an index. You will mostly work with DataFrames, but understanding the distinction matters because many operations return a Series and some expect one.
 
-| Source | File | Join key |
-|---|---|---|
-| Enrollment | `student_report/data/enrollment.csv` | `student_id` — matches survey |
-| Survey | `student_report/data/survey_middle_schools.csv` | `student_id` (left) → `ncessch` (right) |
-| CCD school directory | `student_report/data/schools.csv` | `ncessch` — matches survey |
+```
+DataFrame                        Series (one column)
+┌─────────────┬──────────────┐   ┌──────────────┐
+│ student_id  │ school_name  │   │ school_name  │
+├─────────────┼──────────────┤   ├──────────────┤
+│ 124         │ Bloomfield   │   │ Bloomfield   │
+│ 353         │ Bloomfield   │   │ Bloomfield   │
+│ 157         │ Carteret     │   │ Carteret     │
+└─────────────┴──────────────┘   └──────────────┘
+```
 
-The survey CSV is the bridge: it holds each student's `student_id` and the `ncessch` (NCES school ID) of the middle school they attended. A student appears in the enrollment data even if they did not fill out the survey — in that case, no school information will be available and the merge will produce `NaN` values for all school columns.
+## Loading a CSV
 
-The enrollment and school directory CSVs represent data that would normally require a database query and an API call to obtain. For now they are provided as static files; Sessions 8–11 build the code that generates them automatically.
-
-## Building transform.py v1
-
-### Starting the file
-
-Create `student_report/transform.py` and add the import:
+Add this to `scratch.py` and run it:
 
 ```python
 import pandas as pd
-```
 
-That is the only import this module needs.
-
-### get_students() — Deduplication
-
-The enrollment DataFrame has one row per student × course enrollment. A student who took three courses appears three times. Before merging, we need exactly one row per student.
-
-Add `get_students()`:
-
-```python
-def get_students(enrollment_df):
-    return (
-        enrollment_df[['student_id', 'first_name', 'last_name', 'zip', 'city', 'state']]
-        .drop_duplicates(subset=['student_id'])
-        .copy()
-    )
-```
-
-Three things happen here:
-
-1. **Column selection** — `enrollment_df[['student_id', ...]]` keeps only the six columns the pipeline needs, dropping `course_name`, `cost`, `enroll_date`, and `final_grade`. Those are per-enrollment details, not per-student details.
-2. **Deduplication** — `.drop_duplicates(subset=['student_id'])` keeps the first row for each `student_id` and discards the rest. The six columns are all student-level data (the same value on every row for a given student), so it does not matter which enrollment row is kept.
-3. **Copy** — `.copy()` returns an independent DataFrame so that later operations do not silently modify the original.
-
-### Normalizing the join keys
-
-Before merging, the join key columns need to be in a consistent format. Two problems come from the API data in `schools.csv`:
-
-- `ncessch` was returned as a float: `360007702472.0`. The survey CSV stores it without the decimal: `360007702472`. These will not match unless we normalize both sides.
-- `zip_mailing` was returned as a float: `10001.0`. ZIP codes are five-digit strings and need zero-padding for short codes.
-
-The enrollment `zip` column comes from Oracle as a string but may also need zero-padding.
-
-The normalization pattern for a float-to-clean-string conversion is:
-
-```python
-column.astype(str).str.split('.').str[0]
-```
-
-- `.astype(str)` converts `360007702472.0` → `'360007702472.0'`
-- `.str.split('.')` splits on the decimal point → `['360007702472', '0']`
-- `.str[0]` takes the first part → `'360007702472'`
-
-For ZIP codes, append `.str.zfill(5)` to pad short codes with leading zeros: `'7102'` → `'07102'`.
-
-### merge_data() — The three-way merge
-
-Add `merge_data()` below `get_students()`:
-
-```python
-def merge_data(students_df, survey_df, school_df):
-    students_df = students_df.copy()
-    survey_df = survey_df.copy()
-    school_df = school_df.copy()
-
-    students_df['zip'] = students_df['zip'].astype(str).str.zfill(5)
-    school_df['zip_mailing'] = (
-        school_df['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)
-    )
-    survey_df['ncessch'] = survey_df['ncessch'].astype(str).str.split('.').str[0]
-    school_df['ncessch'] = school_df['ncessch'].astype(str).str.split('.').str[0]
-
-    merged = students_df.merge(survey_df, on='student_id', how='left')
-    merged = merged.merge(school_df, on='ncessch', how='left')
-
-    return merged
-```
-
-Let's look at each section of this code block.
-
-#### Defensive copies
-
-The three `.copy()` calls at the top prevent the normalization steps from modifying the DataFrames that were passed in. This makes the function safe to call multiple times or from a test.
-
-#### Normalization
-
-The four assignment lines normalize the join key columns as described above. The normalization happens before the merge so both sides have matching formats.
-
-#### First merge — students → survey
-
-`students_df.merge(survey_df, on='student_id', how='left')` joins on `student_id`. `how='left'` keeps every row from `students_df`. Students who have a survey response get `middle_school_name` and `ncessch` from the survey. Students with no survey response get `NaN` in those columns.
-
-#### Second merge — result → CCD
-
-`merged.merge(school_df, on='ncessch', how='left')` joins the result of the first merge to the CCD school directory on `ncessch`. Students who matched the survey and whose `ncessch` exists in the CCD data get all the school columns (`school_name`, `city_location`, `zip_mailing`, `enrollment`, etc.). Students with no survey match — and therefore no `ncessch` — still get `NaN` for all school columns.
-
-The final result is one row per student, with school data where available.
-
-### Testing with a __main__ block
-
-Add an `if __name__ == '__main__':` block to load the CSV files from prior sessions and test the two functions:
-
-::: {.callout-note title="What on earth is `__name__` and `'__main__'`?" collapse="true"}
-`__name__` is a special variable in Python:
-
-- If the code is in an imported module, it will be the name of the module
-- If the code is in the script you are running, it will equal `'__main__'`
-
-This means that you can have a block of code that only runs if you are running the file as a script. Anything in the code block will *not* be run if you import the module.
-:::
-
-
-```python
-if __name__ == '__main__':
-    enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
-    survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
-    school_df = pd.read_csv('student_report/data/schools.csv')
-
-    students = get_students(enrollment_df)
-    print(f"Students (deduplicated): {len(students)}")
-
-    merged = merge_data(students, survey_df, school_df)
-    print(f"Merged rows: {len(merged)}")
-    print(merged.head())
-    print()
-    merged.info()
+df = pd.read_csv('student_report/data/survey_middle_schools.csv')
+print(df)
 ```
 
 Run from the repo root:
 
-```bash
-python student_report/transform.py
+```zsh
+python scratch.py
 ```
 
-You should see the deduplicated student count followed by the merged row count — both numbers should be equal (one row per student). The `.info()` output will show `NaN` counts for the school columns, indicating students with no survey match.
+You should see a table with three columns — `student_id`, `middle_school_name`, and `ncessch` — and several rows.
 
-### Inspecting unmatched rows
+> **Always run scripts from the repo root.** If you run from a different directory, relative file paths like `student_report/data/...` will not resolve.
 
-Add a few lines to the `__main__` block to look at students without a survey match:
+### Controlling column data types
+
+By default, pandas infers each column's type from its values. Run `.info()` to see what it chose:
 
 ```python
-if __name__ == '__main__':
-    enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
-    survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
-    school_df = pd.read_csv('student_report/data/schools.csv')
-
-    students = get_students(enrollment_df)
-    print(f"Students (deduplicated): {len(students)}")
-
-    merged = merge_data(students, survey_df, school_df)
-    print(f"Merged rows: {len(merged)}")
-    print(merged.head())
-    print()
-    merged.info()
-    print()
-
-    unmatched = merged[merged['middle_school_name'].isna()]
-    print(f"Students without a survey match: {len(unmatched)}")
-    print(unmatched[['student_id', 'first_name', 'last_name', 'city', 'state']].head())
+print(df.info())
 ```
 
-`merged['middle_school_name'].isna()` is `True` for every row where the survey join found no match. These are students who either did not complete the survey or whose record was not in the survey data. The count and a sample of names give a sense of how much school data is missing before the report is produced.
+Notice that `ncessch` is loaded as `int64` — a number. That looks fine until you compare it to another dataset where the same ID is stored as a string like `"340183001982"`. Type mismatches silently produce empty merges.
 
-### Saving the merged result to CSV
-
-Add a `to_csv()` call to write the merged DataFrame to a file:
+Fix this at load time by specifying `dtype`:
 
 ```python
-if __name__ == '__main__':
-    enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
-    survey_df = pd.read_csv('student_report/data/survey_middle_schools.csv')
-    school_df = pd.read_csv('student_report/data/schools.csv')
-
-    students = get_students(enrollment_df)
-    merged = merge_data(students, survey_df, school_df)
-
-    print(f"Students: {len(students)}")
-    print(f"Merged rows: {len(merged)}")
-
-    unmatched = merged[merged['middle_school_name'].isna()]
-    print(f"Students without a survey match: {len(unmatched)}")
-
-    merged.to_csv('student_report/reports/merged.csv', index=False)
-    print("Saved merged.csv")
+df = pd.read_csv(
+    'student_report/data/survey_middle_schools.csv',
+    dtype={'ncessch': str}
+)
 ```
 
-Run again and open `student_report/reports/merged.csv`. Each row is one student. The school columns are populated where a survey match and a CCD match both exist, and `NaN` otherwise.
+Run `.info()` again — `ncessch` is now `object` (pandas' label for strings). This is exactly how `main.py` loads this file. Any time you load a file with an ID column that is all digits, force it to string.
 
-## transform.py v1 — Complete File
+## Inspecting a Dataset
 
-Remove the `if __name__ == '__main__':` block. The final `transform.py` v1 defines one import and two functions:
+Three methods give you a quick picture of any DataFrame.
+
+### `.head()`
+
+Returns the first 5 rows (or however many you pass):
 
 ```python
-import pandas as pd
-
-
-def get_students(enrollment_df):
-    return (
-        enrollment_df[['student_id', 'first_name', 'last_name', 'zip', 'city', 'state']]
-        .drop_duplicates(subset=['student_id'])
-        .copy()
-    )
-
-
-def merge_data(students_df, survey_df, school_df):
-    students_df = students_df.copy()
-    survey_df = survey_df.copy()
-    school_df = school_df.copy()
-
-    students_df['zip'] = students_df['zip'].astype(str).str.zfill(5)
-    school_df['zip_mailing'] = (
-        school_df['zip_mailing'].astype(str).str.split('.').str[0].str.zfill(5)
-    )
-    survey_df['ncessch'] = survey_df['ncessch'].astype(str).str.split('.').str[0]
-    school_df['ncessch'] = school_df['ncessch'].astype(str).str.split('.').str[0]
-
-    merged = students_df.merge(survey_df, on='student_id', how='left')
-    merged = merged.merge(school_df, on='ncessch', how='left')
-
-    return merged
+print(df.head())
+print(df.head(10))
 ```
 
-`main.py` (Session 12) will call these functions by importing `transform.py`. There is no top-level code after the import, so the import is safe — no file I/O or computation happens until the functions are explicitly called.
+Use this first every time you load a new file.
 
-In Session 5, we add three aggregation functions to `transform.py`: summaries by school, by ZIP, and by school size — plus `pd.cut()` to bucket school enrollment into Small / Medium / Large.
+### `.info()`
+
+Prints column names, non-null counts, and data types:
+
+```python
+df.info()
+```
+
+The non-null count is important: if a column has fewer non-null values than total rows, some values are missing (`NaN`). You will deal with missing data in the merge step.
+
+### `.describe()`
+
+Computes summary statistics for numeric columns:
+
+```python
+print(df.describe())
+```
+
+For this dataset, only `student_id` is numeric, so you will see its count, mean, min, and max. On richer datasets, `.describe()` immediately shows whether values are in a plausible range.
+
+## Selecting Columns
+
+Select one column using bracket notation — this returns a **Series**:
+
+```python
+print(df['middle_school_name'])
+```
+
+Select multiple columns by passing a list — this returns a **DataFrame**:
+
+```python
+print(df[['student_id', 'middle_school_name']])
+```
+
+Note the double brackets: the outer `[ ]` is the selection operator; the inner `[ ]` is a Python list of column names.
+
+You can assign the result to a new variable:
+
+```python
+names_only = df[['student_id', 'middle_school_name']]
+print(names_only.head())
+```
+
+Column selection is how every module in this pipeline trims down a wide DataFrame to only the columns it actually needs. In `transform.py`, `get_students()` selects six columns from the full Oracle enrollment result before doing anything else with the data.
+
+## Filtering Rows
+
+Filter rows by writing a condition inside `[ ]`. The condition must compare a column to a value and return `True` or `False` for each row.
+
+```python
+target_school = df[df['middle_school_name'] == 'Bloomfield Middle School']
+print(target_school)
+```
+
+pandas evaluates `df['middle_school_name'] == 'Bloomfield Middle School'` row by row, producing a column of `True`/`False` values called a **boolean mask**. Placing that mask inside `df[ ]` keeps only the rows where the condition is `True`.
+
+Combine conditions with `&` (and) or `|` (or). Wrap each condition in parentheses:
+
+```python
+nj_schools = df[
+    (df['middle_school_name'] == 'Bloomfield Middle School') |
+    (df['middle_school_name'] == 'Carteret Middle School')
+]
+print(nj_schools)
+```
+
+## Writing a Function
+
+So far, every operation has been written as a standalone line. When you need to repeat the same steps — or when a block of code has a clear single purpose — wrap it in a function.
+
+Here is a function that takes the survey DataFrame and returns a count of students per school, sorted from most to least:
+
+```python
+def count_by_school(df):
+    counts = df.groupby('middle_school_name').size().reset_index(name='student_count')
+    return counts.sort_values('student_count', ascending=False)
+```
+
+Add this to `scratch.py` and call it:
+
+```python
+result = count_by_school(df)
+print(result.head(10))
+```
+
+This is a simplified preview of `summarize_top_schools()` in `transform.py`, which you will build in Session 6. The structure is the same: a function accepts a DataFrame, performs a transformation, and returns a new DataFrame.
+
+### Why functions?
+
+- **Reuse.** Call `count_by_school(df)` anywhere instead of rewriting four lines every time.
+- **Naming.** `count_by_school(df)` says exactly what it does. Four anonymous lines do not.
+- **Testability.** In Session 14, you will write unit tests that call functions directly and check their output.
+
+A good rule of thumb: if a block of code has a name you can give it in plain English, it belongs in a function.
+
+## The Other Two Sources
+
+The pipeline uses three CSV files in total. You just explored the survey CSV. The other two are also in `student_report/data/`.
+
+### enrollment.csv
+
+```python
+enrollment_df = pd.read_csv('student_report/data/enrollment.csv')
+print(enrollment_df.head())
+enrollment_df.info()
+```
+
+A few things to notice:
+- Column names are lowercase — a normalization step that `db.py` applies when it queries Oracle.
+- There are more rows than students. A student enrolled in three courses appears three times — one row per enrollment. Session 5 will deduplicate this to one row per student before merging.
+- `student_id` is the key that links this file to the survey.
+
+This file was exported from the Oracle training database. In Sessions 9–10 you will write the Python code that generates it automatically.
+
+### schools.csv
+
+```python
+school_df = pd.read_csv('student_report/data/schools.csv')
+print(school_df.head())
+school_df.info()
+```
+
+A few things to notice:
+- `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. This is a quirk of how the Urban Institute API returns them; `transform.py` normalizes them in Session 5 before merging.
+- `school_level` encodes the school type: `2.0` means middle school.
+- There are thousands of rows — every NY and NJ school in the 2019 CCD directory.
+
+This file was downloaded from the Urban Institute Education Data Portal. In Sessions 11–12 you will write the Python code that generates it automatically.
+
+### Why these files are here
+
+In Phase 1, `enrollment.csv` and `schools.csv` represent data that someone on your team collected by hand before the workshop — the same steps in the old workflow that together took 30–50 minutes. You will work with them directly. Phase 2 (Sessions 9–12) builds the automation that eliminates those manual steps entirely.
 
 ## Practice Exercise
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
-The starter script is at [`exercises/session_04_exercise.py`](../exercises/session_04_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_04_answer.py`](../exercises/session_04_answer.py).
+The starter script is at [`exercises/session_04_exercise.py`](../exercises/session_04_exercise.py). It contains instructions and fill-in-the-blank placeholders. Every exercise in this workshop uses the same convention: a `# TODO:` comment marks each blank. Replace `"___"` (with the quotes) with a string value, and replace a bare `___` (no quotes) with a variable name or expression. If you get stuck, the completed version is at [`exercises/session_04_answer.py`](../exercises/session_04_answer.py).
 
 Run from the repo root:
 
@@ -273,7 +237,6 @@ python exercises/session_04_exercise.py
 
 ## Additional Resources
 
-- [pandas — DataFrame.merge](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html)
-- [pandas — DataFrame.drop_duplicates](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop_duplicates.html)
-- [pandas — Working with missing data](https://pandas.pydata.org/docs/user_guide/missing_data.html)
-- [pandas — String methods (.str accessor)](https://pandas.pydata.org/docs/user_guide/text.html)
+- [pandas documentation](https://pandas.pydata.org/docs/)
+- [pandas cheat sheet (DataCamp)](https://www.datacamp.com/cheat-sheet/pandas-cheat-sheet-for-data-science-in-python)
+- [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html)

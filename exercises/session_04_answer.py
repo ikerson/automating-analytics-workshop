@@ -1,27 +1,16 @@
-# Session 4 Exercise — Merging Three Sources (Answer)
+# Session 4 Exercise — Pandas Basics (Answer)
 #
 # Run from the repo root:
 #   python exercises/session_04_answer.py
 
-from pathlib import Path
 import pandas as pd
 
-DATA_DIR = Path('exercises') / 'data'
+df = pd.read_csv('exercises/data/outreach_contacts.csv')
+print(df.head())
+print(df.info())
 
-contacts = pd.read_csv(DATA_DIR / 'outreach_contacts.csv')
-survey = pd.read_csv(DATA_DIR / 'school_survey_2019.csv')
-schools = pd.read_csv(DATA_DIR / 'middle_schools_2019.csv')
-
-merged = contacts.merge(survey[['student_id', 'ncessch']], on='student_id', how='left')
-
-merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
-schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]
-
-merged = merged.merge(schools, on='ncessch', how='left')
-
-unmatched = merged[merged['school_name'].isna()]
-print(f"Contacts without a school match: {len(unmatched)}")
-print(unmatched[['student_id', 'first_name', 'last_name']])
-
-merged.to_csv(DATA_DIR / 'merged_contacts.csv', index=False)
+df = df[['student_id', 'first_name', 'last_name', 'phone', 'zip_code']]
+df = df.dropna(subset=['phone'])
+print(f"{len(df)} rows remaining after dropping missing phone numbers.")
+df.to_csv('exercises/data/outreach_contacts_cleaned.csv', index=False)
 print("Done.")

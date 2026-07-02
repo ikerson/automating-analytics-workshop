@@ -1,15 +1,18 @@
-# Session 5 Exercise — Aggregations and Summary Statistics
+# Session 5 Exercise — Merging Three Sources
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
 ## Your Task
 
-1. Load `exercises/data/merged_contacts.csv` (produced in the Session 4 exercise)
-2. Use `pd.cut()` on the `enrollment` column to create a `school_size` column
-   - Bins: `[0, 300, 700, inf]`  Labels: `['Small (<300)', 'Medium (300-700)', 'Large (700+)']`
-3. Print `value_counts()` on `city_location` — how many contacts attended schools in each city?
-4. Use `groupby('school_size', observed=True)` and `.agg()` to compute student count and average enrollment per size bucket
-5. Save the size summary to `exercises/data/size_summary.csv` (no index)
+1. Load `exercises/data/outreach_contacts.csv`
+2. Load `exercises/data/school_survey_2019.csv`
+3. Load `exercises/data/middle_schools_2019.csv`
+4. Merge contacts with survey on `student_id` (left join) — keep only `student_id` and `ncessch` from the survey
+5. Normalize `ncessch` to a clean string in both DataFrames
+6. Merge the result with middle schools on `ncessch` (left join)
+7. Print how many contacts have no school match (`school_name` is NaN)
+8. Print the first and last names of those unmatched contacts
+9. Save the merged result to `exercises/data/merged_contacts.csv` (no index)
 
 ## Starter Script
 

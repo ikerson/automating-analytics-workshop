@@ -1,16 +1,19 @@
-# Session 3 Exercise — Pandas Basics (Answer)
+# Before You Begin Exercise - Python Fundamentals
 #
 # Run from the repo root:
 #   python exercises/session_03_answer.py
 
-import pandas as pd
+exam_scores = [65, 92, 81, 40, 70]
 
-df = pd.read_csv('exercises/data/outreach_contacts.csv')
-print(df.head())
-print(df.info())
+def passing_scores(scores, cutoff):
+    scores_above_cutoff = []
+    for score in scores:
+        if score >= cutoff:
+            scores_above_cutoff.append(score)
+    return scores_above_cutoff
 
-df = df[['student_id', 'first_name', 'last_name', 'phone', 'zip_code']]
-df = df.dropna(subset=['phone'])
-print(f"{len(df)} rows remaining after dropping missing phone numbers.")
-df.to_csv('exercises/data/outreach_contacts_cleaned.csv', index=False)
-print("Done.")
+scores_above_or_at_70 = passing_scores(exam_scores, 70)
+print(f'Scores greater than or equal to 70: {scores_above_or_at_70}')
+
+repeat_score = len(set(exam_scores)) != len(exam_scores)
+print(f'Any students with the same score?: {repeat_score}')

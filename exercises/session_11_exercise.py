@@ -1,37 +1,36 @@
-# Session 11 Exercise — Working with API Results
+# Session 11 Exercise — Calling the Education Data API
 #
 # Task:
-#   1. Create an EducationDataAPI instance and call ccd_directory(2019, fips='36,34')
-#   2. Convert to a DataFrame with .to_df()
-#   3. Select this subset of columns:
-#      ['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']
-#   4. Filter to middle schools only: rows where school_level == 2
-#   5. Print how many middle schools remain
-#   6. Save the filtered result to exercises/data/middle_schools_2019_filtered.csv (no index)
+#   1. Create an EducationDataAPI instance
+#   2. Call ccd_directory for the year 2018 with fips='36,34'
+#   3. Print result.count — how many schools are returned?
+#   4. Convert to a DataFrame with .to_df()
+#   5. Print .head() and .info()
+#   6. Print the list of column names
 #
 # Run from the repo root:
 #   python exercises/session_11_exercise.py
 
-from pathlib import Path
 from educationdata import EducationDataAPI
 
-COLUMNS = ['ncessch', 'school_name', 'city_location', 'state_location', 'school_level', 'enrollment']
-
-# TODO: Call ccd_directory for 2019 — note: fips must be a string, not a list
+# 1. Create an API instance
 api = EducationDataAPI()
-result = api.ccd_directory(2019, fips="___")
 
-# 2. Convert to a DataFrame
-df = result.to_df()
+# TODO: Call ccd_directory for 2018 — note: fips must be a string, not a list
+result = api.ccd_directory(2018, fips="___")
 
-# 3. Select the column subset defined above
-df = df[COLUMNS].copy()
+# 3. How many schools are returned?
+print(result.count)
 
-# TODO: Filter to middle schools (school_level == 2)
-df = df[df["school_level"] == ___]
+# TODO: Convert to a DataFrame
+df = ___.to_df()
 
-print(f"Middle schools: {len(df)}")
+# 5. Inspect the results
+print(df.___())
+print()
+df.info()
+print()
 
-# TODO: Save to exercises/data/middle_schools_2019_filtered.csv — no row index
-df.to_csv(Path("exercises") / "data" / "___", index=False)
+# TODO: Print the list of column names
+print(df.columns.tolist())
 print("Done.")

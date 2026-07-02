@@ -1,4 +1,4 @@
-# Session 9 Exercise — Working with Database Results
+# Session 9 Exercise — Oracle Connection
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 >
@@ -8,11 +8,8 @@
 
 1. Load `student_report/.env`
 2. Connect to Oracle using `LightOracleConnection`
-3. Query all rows from the `course` table
-4. Normalize column names to lowercase
-5. Filter to courses with `cost > 1000`
-6. Save the filtered result to `exercises/data/courses_over_1000.csv` (no index)
-7. Print how many courses remain after filtering
+3. Query the first 10 rows of the `zipcode` table
+4. Print the result
 
 ## Starter Script
 

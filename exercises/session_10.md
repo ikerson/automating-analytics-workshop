@@ -1,19 +1,22 @@
-# Session 10 Exercise — Calling the Education Data API
+# Session 10 Exercise — Working with Database Results
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
+>
+> **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
 ## Your Task
 
-1. Create an `EducationDataAPI` instance
-2. Call `ccd_directory` for the year `2018` with `fips='36,34'`
-3. Print `result.count` — how many schools are returned?
-4. Convert to a DataFrame with `.to_df()`
-5. Print `.head()` and `.info()`
-6. Print the list of column names
+1. Load `student_report/.env`
+2. Connect to Oracle using `LightOracleConnection`
+3. Query all rows from the `course` table
+4. Normalize column names to lowercase
+5. Filter to courses with `cost > 1000`
+6. Save the filtered result to `exercises/data/courses_over_1000.csv` (no index)
+7. Print how many courses remain after filtering
 
 ## Starter Script
 
-Open [`session_10_exercise.py`](session_10_exercise.py) and fill in the blanks marked with `# TODO:`. Note: `fips` must be a comma-separated string (`'36,34'`), not a Python list. If you get stuck, the completed version is at [`session_10_answer.py`](session_10_answer.py).
+Open [`session_10_exercise.py`](session_10_exercise.py) and fill in the blanks marked with `# TODO:`. If you get stuck, the completed version is at [`session_10_answer.py`](session_10_answer.py).
 
 Run from the repo root:
 

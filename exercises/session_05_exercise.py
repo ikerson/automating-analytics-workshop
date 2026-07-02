@@ -1,13 +1,15 @@
-# Session 5 Exercise — Aggregations and Summary Statistics
+# Session 5 Exercise — Merging Three Sources
 #
 # Task:
-#   1. Load exercises/data/merged_contacts.csv (produced in the Session 4 exercise)
-#   2. Use pd.cut() on the enrollment column to create a school_size column
-#      Bins: [0, 300, 700, inf]  Labels: ['Small (<300)', 'Medium (300-700)', 'Large (700+)']
-#   3. Print value_counts() on city_location — how many contacts attended schools in each city?
-#   4. Use groupby('school_size', observed=True) and .agg() to compute student count
-#      and average enrollment per size bucket
-#   5. Save the size summary to exercises/data/size_summary.csv (no index)
+#   1. Load exercises/data/outreach_contacts.csv
+#   2. Load exercises/data/school_survey_2019.csv
+#   3. Load exercises/data/middle_schools_2019.csv
+#   4. Merge contacts with survey on student_id (left join) — only keep student_id and ncessch from survey
+#   5. Normalize ncessch to a clean string in both DataFrames
+#   6. Merge result with middle_schools on ncessch (left join)
+#   7. Print how many contacts have no school match (school_name is NaN)
+#   8. Print the first and last names of those unmatched contacts
+#   9. Save the merged result to exercises/data/merged_contacts.csv (no index)
 #
 # Run from the repo root:
 #   python exercises/session_05_exercise.py
@@ -17,28 +19,26 @@ import pandas as pd
 
 DATA_DIR = Path('exercises') / 'data'
 
-# TODO: Load merged_contacts.csv
-merged = pd.read_csv(DATA_DIR / "___")
+# TODO: Load the three CSV files
+contacts = pd.read_csv(DATA_DIR / "___")
+survey = pd.read_csv(DATA_DIR / "___")
+schools = pd.read_csv(DATA_DIR / "___")
 
-# TODO: Create a school_size column — fill in the column name and the three labels
-merged['school_size'] = pd.cut(
-    merged["___"],
-    bins=[0, 300, 700, float('inf')],
-    labels=["___", "___", "___"],
-)
+# TODO: Merge contacts with survey — we only need student_id and ncessch from survey
+merged = contacts.merge(survey[['student_id', 'ncessch']], on="___", how="___")
 
-# TODO: Print value_counts() on the city column
-print(merged["___"].value_counts())
+# 5. Normalize ncessch — stored as a float, strip the decimal
+merged['ncessch'] = merged['ncessch'].astype(str).str.split('.').str[0]
+schools['ncessch'] = schools['ncessch'].astype(str).str.split('.').str[0]
 
-# TODO: Fill in the groupby column and the two aggregation columns
-size_summary = (
-    merged.dropna(subset=['school_size'])
-    .groupby("___", observed=True)
-    .agg(student_count=("___", "count"), avg_enrollment=("___", "mean"))
-    .reset_index()
-)
-print(size_summary)
+# TODO: Merge result with schools — fill in the join key and join type
+merged = merged.merge(schools, on="___", how="___")
 
-# TODO: Save the size summary — no row index
-size_summary.to_csv(DATA_DIR / "___", index=False)
+# TODO: Find contacts with no school match and print them
+unmatched = merged[merged["___"].isna()]
+print(f"Contacts without a school match: {len(unmatched)}")
+print(unmatched[['student_id', 'first_name', 'last_name']])
+
+# TODO: Save the merged result — no row index
+merged.to_csv(DATA_DIR / "___", index=False)
 print("Done.")

@@ -1,21 +1,16 @@
-# Session 10 — Calling a Web API
+# Session 10 — Working with Database Results
 
 ## Introduction
 
-`schools.csv` in `student_report/data/` was downloaded manually from the Urban Institute Education Data Portal website — the same multi-step process in the original workflow that took 15–20 minutes every month. This session automates that download. We look at what a web API is, make a raw HTTP request to see the structure, then use the `urban-education-data` package to call the Urban Institute's CCD school directory and inspect what comes back. The result is `api.py` v1 — exploration code that confirms we can reach the API and understand the data. Session 11 will refactor it into a reusable function.
+Session 9 confirmed the Oracle connection works and ran a single-table query. This session builds `db.py` v2: we replace the top-level exploration code with a five-table enrollment JOIN wrapped in a reusable function, and normalize the column names so the rest of the pipeline can use them consistently. The finished `db.py` is a module — it defines a function rather than running code at the top level — so it can be safely imported in later sessions without triggering a database query.
 
-:::{.callout-note}
-### Reference
-*Automate the Boring Stuff with Python*, Chapter 12 (Making HTTP Requests)
-:::
+> **GSU network required.** The Oracle server is only reachable on the GSU network. On campus, GSU WiFi is sufficient. If you are working off campus, connect to the GSU VPN before starting the code-along and before running the practice exercise.
 
 ## Setting Up
 
-Open VS Code and activate your conda environment in the terminal.
+Open VS Code, activate your conda environment in the terminal, and open `student_report/db.py`. This is the file you built in Session 9.
 
-In the Explorer pane, right-click the `student_report/` folder and choose **New File**. Name it `api.py`.
-
-In the terminal:
+In Git Bash:
 
 ```zsh
 conda activate student-report
@@ -23,184 +18,242 @@ conda activate student-report
 
 Confirm `(student-report)` appears in your terminal prompt before continuing.
 
-## What Is an API?
-
-In the manual workflow, someone visits a website, finds the right download link, and saves the file. A **web API** (Application Programming Interface) is a way for programs to request the same data programmatically — no browser, no clicking, no manual download.
-
-An API exposes one or more **endpoints**: specific URLs that return data in a structured format. You send an HTTP GET request (the same kind of request a browser sends when you type a URL) and the server responds with data, usually formatted as **JSON**.
-
-**JSON** (JavaScript Object Notation) is a text format for structured data. It looks like a Python dictionary:
-
-```json
-{
-  "ncessch": 360007702472,
-  "school_name": "PS 1 The Bergen",
-  "city_location": "New York",
-  "state_location": "NY",
-  "enrollment": 312
-}
-```
-
-Each school in the CCD directory is one JSON object. The API returns a list of these objects, one per school.
-
-## Making a Raw HTTP Request
-
-The `requests` library is the standard Python tool for making HTTP requests. It is installed automatically as a dependency of the `urban-education-data` package in your conda environment.
-
-Add this to `api.py` and run it:
+Your current `db.py` should look like this:
 
 ```python
-import requests
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-url = 'https://educationdata.urban.org/api/v1/schools/ccd/directory/2019/?fips=36&per_page=1'
-response = requests.get(url)
-print(response.status_code)
-print(response.json())
+load_dotenv(Path(__file__).parent / ".env")
+
+conn = LightOracleConnection()
+conn.test_connection()
+
+df = conn.execute_query("SELECT * FROM student FETCH FIRST 5 ROWS ONLY")
+print(df)
+print(df.info())
 ```
 
-Run from the repo root:
+The lines after `load_dotenv(...)` are top-level statements — they run every time this file is imported by another script, not just when you run it directly. That was fine for exploring the connection in Session 9. Today we restructure `db.py` so it defines a function instead of running code, and replace the single-table query with the full enrollment data we actually need.
 
-```bash
-python student_report/api.py
+## The Enrollment Query
+
+The workshop pipeline needs data from five tables in the Oracle database:
+
+| Table | What it contributes |
+|---|---|
+| `student` | Name, student ID, ZIP code |
+| `zipcode` | City and state for each ZIP |
+| `enrollment` | Which student is enrolled in which section |
+| `section` | Which course each section belongs to |
+| `course` | Course name and cost |
+
+Joining all five tables produces one row for every course a student has enrolled in. A student enrolled in three courses appears three times. `transform.py` (Session 5) will deduplicate this down to one row per student before merging.
+
+The complete SQL:
+
+```sql
+SELECT
+    s.STUDENT_ID,
+    s.FIRST_NAME,
+    s.LAST_NAME,
+    s.ZIP,
+    z.CITY,
+    z.STATE,
+    c.DESCRIPTION  AS COURSE_NAME,
+    c.COST,
+    e.ENROLL_DATE,
+    e.FINAL_GRADE
+FROM student s
+JOIN zipcode    z ON s.ZIP        = z.ZIP
+JOIN enrollment e ON s.STUDENT_ID = e.STUDENT_ID
+JOIN section  sec ON e.SECTION_ID = sec.SECTION_ID
+JOIN course     c ON sec.COURSE_NO = c.COURSE_NO
 ```
 
-You should see `200` (HTTP OK) followed by a JSON object. The `.json()` method parses the response body into a Python dictionary. The structure will look like:
+This is the query the pipeline uses. Each alias (`s`, `z`, `e`, `sec`, `c`) is shorthand for the table name — `s.STUDENT_ID` means the `STUDENT_ID` column from the `student` table. The `JOIN ... ON` clauses link each pair of tables on their shared key column.
 
-```
-{
-  'count': 1740,
-  'next': 'https://educationdata.urban.org/api/v1/...',
-  'previous': None,
-  'results': [{ ... one school record ... }]
-}
-```
+## Building db.py v2
 
-The `count` field tells you how many total records match the query (1,740 New York schools in 2019). The `results` list contains the actual records — only one here because we asked for `per_page=1`. Getting all 1,740 records would require paginating through each page of results.
+### Clearing the exploration code
 
-Delete this exploration code. The `urban-education-data` package handles pagination for you — you never need to page through results manually.
+Open `student_report/db.py`. Delete everything below the `load_dotenv(...)` line — the `conn`, `conn.test_connection()`, `df`, and `print()` lines. Leave the imports and `load_dotenv(...)` in place.
 
-## The urban-education-data Package
-
-The `urban-education-data` package is a Python client for the Urban Institute Education Data Portal, built and maintained by GSU Analytics. It is already installed in your conda environment via `environment.yml`.
-
-It wraps the raw HTTP calls and automatic pagination into a single method call:
+Your file should now be:
 
 ```python
-from educationdata import EducationDataAPI
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
+load_dotenv(Path(__file__).parent / ".env")
 ```
 
-`fips='36,34'` requests schools in both New York (36) and New Jersey (34). The result is an `EducationDataResult` object — not yet a DataFrame. To get a DataFrame, call `.to_df()`:
+### Defining the query as a constant
+
+Add the enrollment query as a module-level string constant named `ENROLLMENT_QUERY`:
 
 ```python
-df = result.to_df()
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
+
+load_dotenv(Path(__file__).parent / ".env")
+
+ENROLLMENT_QUERY = """
+    SELECT
+        s.STUDENT_ID,
+        s.FIRST_NAME,
+        s.LAST_NAME,
+        s.ZIP,
+        z.CITY,
+        z.STATE,
+        c.DESCRIPTION  AS COURSE_NAME,
+        c.COST,
+        e.ENROLL_DATE,
+        e.FINAL_GRADE
+    FROM student s
+    JOIN zipcode    z ON s.ZIP        = z.ZIP
+    JOIN enrollment e ON s.STUDENT_ID = e.STUDENT_ID
+    JOIN section  sec ON e.SECTION_ID = sec.SECTION_ID
+    JOIN course     c ON sec.COURSE_NO = c.COURSE_NO
+"""
 ```
 
-The package fetches all pages automatically. For NY and NJ middle schools in 2019, that is several thousand records — the call may take a few seconds.
+Storing the SQL as a named constant keeps the function short and makes the query easy to find and edit without touching any Python logic. The triple-quoted string `""" ... """` lets the SQL span multiple lines.
 
-> **Important:** `fips='36,34'` must be a comma-separated **string**. Passing a Python list (`fips=[36, 34]`) returns an HTTP 400 error. This is a quirk of how the API parses the parameter.
+### Writing the function
 
-## Building api.py v1
-
-### Calling the API
-
-Replace the contents of `api.py` with:
+Now add `get_enrollment()` below the constant:
 
 ```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
+def get_enrollment():
+    conn = LightOracleConnection()
+    df = conn.execute_query(ENROLLMENT_QUERY)
+    df.columns = df.columns.str.lower()
+    return df
 ```
 
-`result.count` is the total number of records returned — useful for a quick sanity check before pulling everything into a DataFrame.
+Three things happen inside this function:
+
+1. A new connection opens — it reads `ORACLE_USER`, `ORACLE_PASSWORD`, and `ORACLE_DSN` from the environment that `load_dotenv(...)` set up at the top of the file
+2. The query runs and returns a DataFrame
+3. `df.columns.str.lower()` normalizes all column names to lowercase
+
+Oracle returns column names in uppercase (`STUDENT_ID`, `FIRST_NAME`, ...). Lowercase names are easier to type and match the convention used by the rest of the pipeline. After this line, every column is `student_id`, `first_name`, and so on.
+
+### Running the function
+
+To test `get_enrollment()` without making `db.py` run code on every import, add a `if __name__ == '__main__':` block at the bottom:
+
+```python
+if __name__ == '__main__':
+    df = get_enrollment()
+    print(df.head())
+    print()
+    df.info()
+```
+
+`if __name__ == '__main__':` is a Python convention: the indented block only executes when you run the file directly (`python student_report/db.py`). When another script imports `db.py`, the block is skipped entirely. This is the standard way to make a file both runnable for testing and safe to import.
 
 Run it:
 
 ```bash
-python student_report/api.py
+python student_report/db.py
 ```
 
-You should see a number in the thousands. This is the total count of NY and NJ schools matching the CCD directory for 2019.
+You should see the first five rows of the enrollment result followed by a column summary. The column names will be lowercase. If you see a student ID repeated across rows, that is correct — each row is one enrollment, and students enrolled in multiple courses appear multiple times.
 
-### Converting to a DataFrame
+### Exploring the result
 
-Now convert the result and inspect it:
+Add `.describe()` to the `__main__` block and re-run:
 
 ```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
+if __name__ == '__main__':
+    df = get_enrollment()
+    print(df.head())
+    print()
+    df.info()
+    print()
+    print(df.describe())
 ```
 
-Run again. After a short pause for pagination, you will see the first five rows and a column summary. The DataFrame has many columns — over 50. The next session will narrow it to the 9 columns the pipeline actually uses.
+`.describe()` reports summary statistics for numeric columns. Look at `student_id`, `cost`, and `final_grade`. Note the row count in `.info()` — it is larger than the number of students because each enrollment is its own row. Session 5 will deduplicate this to one row per student.
 
-### Exploring the columns
+### Saving the result to CSV
 
-Add `.describe()` and a column list to get a better picture:
+Add a `to_csv()` call to write the result to a file:
 
 ```python
-from educationdata import EducationDataAPI
-
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
-
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.describe())
-print()
-print(df.columns.tolist())
+if __name__ == '__main__':
+    df = get_enrollment()
+    print(df.head())
+    print()
+    df.info()
+    print()
+    print(df.describe())
+    df.to_csv('student_report/reports/enrollment.csv', index=False)
+    print("Saved enrollment.csv")
 ```
 
-Run again. The column list will be long. Note the columns the pipeline cares about: `ncessch`, `school_name`, `zip_mailing`, `city_location`, `state_location`, `school_level`, `enrollment`, `lowest_grade_offered`, `highest_grade_offered`.
+Run again:
 
-Also note that `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. `transform.py` will normalize them in Session 4.
+```bash
+python student_report/db.py
+```
 
-## api.py v1 — Complete File
+Open `student_report/reports/enrollment.csv` in VS Code or Excel and verify that the column names are lowercase and the data looks correct. This file is in `reports/`, which is gitignored — it is generated output, not source code.
 
-Here is the complete `api.py` v1:
+## db.py v2 — Complete File
+
+When you are finished exploring, remove the `if __name__ == '__main__':` block. Before deleting the block, make sure you have run `python student_report/db.py` at least once and confirmed `enrollment.csv` was saved. The final `db.py` defines one constant and one function:
 
 ```python
-from educationdata import EducationDataAPI
+from pathlib import Path
+from dotenv import load_dotenv
+from lightoracle import LightOracleConnection
 
-api = EducationDataAPI()
-result = api.ccd_directory(2019, fips='36,34')
-print(result.count)
+load_dotenv(Path(__file__).parent / ".env")
 
-df = result.to_df()
-print(df.head())
-print()
-df.info()
-print()
-print(df.describe())
-print()
-print(df.columns.tolist())
+ENROLLMENT_QUERY = """
+    SELECT
+        s.STUDENT_ID,
+        s.FIRST_NAME,
+        s.LAST_NAME,
+        s.ZIP,
+        z.CITY,
+        z.STATE,
+        c.DESCRIPTION  AS COURSE_NAME,
+        c.COST,
+        e.ENROLL_DATE,
+        e.FINAL_GRADE
+    FROM student s
+    JOIN zipcode    z ON s.ZIP        = z.ZIP
+    JOIN enrollment e ON s.STUDENT_ID = e.STUDENT_ID
+    JOIN section  sec ON e.SECTION_ID = sec.SECTION_ID
+    JOIN course     c ON sec.COURSE_NO = c.COURSE_NO
+"""
+
+
+def get_enrollment():
+    conn = LightOracleConnection()
+    df = conn.execute_query(ENROLLMENT_QUERY)
+    df.columns = df.columns.str.lower()
+    return df
 ```
 
-In Session 11 we will:
+`main.py` (Session 13) will call `get_enrollment()` by importing `db.py`. Because there is no top-level code after `load_dotenv(...)`, the import is safe — no database query happens until `get_enrollment()` is explicitly called.
 
-1. Define a `CCD_COLUMNS` list with the 9 columns the pipeline needs
-2. Wrap the API call in a `get_school_data(year)` function
-3. Return only the selected columns
-4. Remove the top-level print statements so `api.py` is safe to import from `main.py`
+> **Note:** `student_report/data/enrollment.csv` is a pre-committed static file generated from this function. Once `db.py` is wired into `main.py` in Session 13, every pipeline run regenerates it automatically from the live Oracle database — the static file is no longer needed for day-to-day use.
+
+In Session 11, we shift to the API side of the data flow. `db.py` stays exactly as it is.
 
 ## Practice Exercise
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
+>
+> **GSU network required** (GSU WiFi on campus, or VPN if off campus).
 
 The starter script is at [`exercises/session_10_exercise.py`](../exercises/session_10_exercise.py). It contains instructions and fill-in-the-blank placeholders. If you get stuck, the completed version is at [`exercises/session_10_answer.py`](../exercises/session_10_answer.py).
 
@@ -212,7 +265,7 @@ python exercises/session_10_exercise.py
 
 ## Additional Resources
 
-- [EducationDataAPI — GSU-Analytics/EducationDataAPI](https://github.com/GSU-Analytics/EducationDataAPI)
-- [Urban Institute Education Data Portal](https://educationdata.urban.org/)
-- [requests documentation](https://requests.readthedocs.io/)
-- *Automate the Boring Stuff with Python*, Chapter 12 — Downloading Files from the Web
+- [lightoracle — GSU-Analytics/lightoracle](https://github.com/GSU-Analytics/lightoracle)
+- [python-dotenv documentation](https://saurabh-kumar.com/python-dotenv/)
+- [pandas — DataFrame.to_csv](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html)
+- [GSU Oracle SQL Training](https://github.com/GSU-Analytics/oracle-sql-training) — SQL reference for the workshop schema

@@ -1,15 +1,17 @@
-# Session 3 Exercise — Pandas Basics
+# Before You Begin Exercise — Python Foundations
 
 > Optional enrichment — complete during the session if time allows, or finish independently on your fork.
 
 ## Your Task
 
-1. Load `exercises/data/outreach_contacts.csv`
-2. Print the first 5 rows and a column summary
-3. Select only these columns: `student_id`, `first_name`, `last_name`, `phone`, `zip_code`
-4. Drop rows where `phone` is missing
-5. Print how many rows remain
-6. Save the result to `exercises/data/outreach_contacts_cleaned.csv`
+Write a script in `session_03_exercise.py` that:
+
+1. Defines a list of at least five numeric exam scores.
+2. Writes a function `passing_scores(scores, cutoff)` that loops over the list and returns a new list containing only the scores at or above `cutoff`.
+3. Calls the function with a cutoff of `70` and prints the result.
+4. Checks to see if there are any students who got the same score, printing the result.
+
+If you get stuck, re-read the "Putting It Together" section above — it uses the same building blocks in a different combination.
 
 ## Starter Script
 

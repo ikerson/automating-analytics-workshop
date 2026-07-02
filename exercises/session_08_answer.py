@@ -1,16 +1,18 @@
-# Session 8 Exercise — Oracle Connection (Answer)
+# Session 8 Exercise — Generating the Excel Report (Answer)
 #
 # Run from the repo root:
 #   python exercises/session_08_answer.py
-#
-# NOTE: VPN required — the Oracle server is only reachable on the GSU network.
 
 from pathlib import Path
-from dotenv import load_dotenv
-from lightoracle import LightOracleConnection
+import pandas as pd
 
-load_dotenv(Path('student_report') / '.env')
-conn = LightOracleConnection()
-df = conn.execute_query("SELECT * FROM zipcode FETCH FIRST 10 ROWS ONLY")
-print(df)
-print("Done.")
+DATA_DIR = Path('exercises') / 'data'
+
+contacts = pd.read_csv(DATA_DIR / 'merged_contacts.csv')
+size_summary = pd.read_csv(DATA_DIR / 'size_summary.csv')
+
+with pd.ExcelWriter(DATA_DIR / 'contacts_report.xlsx', engine='openpyxl') as writer:
+    contacts.to_excel(writer, sheet_name='Contacts', index=False)
+    size_summary.to_excel(writer, sheet_name='By School Size', index=False)
+
+print("Saved contacts_report.xlsx")

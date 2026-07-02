@@ -1,34 +1,52 @@
-# Session 7 Exercise — Generating the Excel Report
+# Session 7 Exercise — Creating Visualizations
 #
 # Task:
-#   1. Load exercises/data/merged_contacts.csv (produced in the Session 4 exercise)
-#   2. Load exercises/data/size_summary.csv (produced in the Session 5 exercise)
-#   3. Write both DataFrames to a single Excel file exercises/data/contacts_report.xlsx
-#      - Sheet 1: "Contacts"  — the merged contacts data
-#      - Sheet 2: "By School Size" — the size summary
-#   4. Use index=False on both sheets
+#   1. Load exercises/data/merged_contacts.csv (produced in the Session 5 exercise)
+#   2. Drop rows with no school match (school_name is NaN)
+#   3. Count students per school using groupby + agg, sort descending, keep top 5
+#   4. Create a horizontal bar chart (barh) of top 5 schools by student count
+#   5. Label the x-axis "Number of Contacts", add a title "Top 5 Middle Schools by Contacts"
+#   6. Invert the y-axis so the school with the most contacts appears at the top
+#   7. Call plt.tight_layout() and save the chart to exercises/data/top_schools_chart.png
+#   8. Call plt.close() after saving
 #
 # Run from the repo root:
 #   python exercises/session_07_exercise.py
 
-___ = None  # replace each ___ with the correct value
-
 from pathlib import Path
 import pandas as pd
+import matplotlib.pyplot as plt
 
 DATA_DIR = Path('exercises') / 'data'
 
 # TODO: Load merged_contacts.csv
-contacts = pd.read_csv(DATA_DIR / "___")
+merged = pd.read_csv(DATA_DIR / "___")
 
-# TODO: Load size_summary.csv
-size_summary = pd.read_csv(DATA_DIR / "___")
+# TODO: Drop rows with no school match, then build the top-5 count
+matched = merged.dropna(subset=["___"])
+top5 = (
+    matched.groupby("___")
+    .agg(student_count=("___", "count"))
+    .reset_index()
+    .sort_values("___", ascending=False)
+    .head(5)
+)
 
-# TODO: Fill in the output filename and engine
-with pd.ExcelWriter(DATA_DIR / "___", engine="___") as writer:
-    # TODO: Fill in the sheet name for the contacts data
-    contacts.to_excel(writer, sheet_name="___", index=False)
-    # TODO: Fill in which DataFrame goes on the "By School Size" sheet
-    ___.to_excel(writer, sheet_name='By School Size', index=False)
+# 4. Build the chart
+fig, ax = plt.subplots(figsize=(9, 5))
 
-print("Saved contacts_report.xlsx")
+# TODO: Plot a horizontal bar chart — fill in the x and y columns
+ax.barh(top5["___"], top5["___"], color='steelblue')
+
+# TODO: Fill in the x-axis label and chart title from the task description
+ax.set_xlabel("___")
+ax.set_title("___")
+
+# 6. Highest bar at the top
+ax.invert_yaxis()
+
+# TODO: Save the chart and close
+plt.tight_layout()
+plt.savefig(DATA_DIR / "___")
+plt.close()
+print("Done.")
