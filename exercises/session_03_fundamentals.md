@@ -20,5 +20,5 @@ Open [`session_03_fundamentals_exercise.py`](session_03_fundamentals_exercise.py
 Run from the repo root:
 
 ```
-python exercises/session_03_exercise.py
+python exercises/session_03_fundamentals_exercise.py
 ```
