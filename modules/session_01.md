@@ -82,6 +82,7 @@ Here is the current workflow for producing the middle school outreach report:
 Total: **2+ hours every time**, before any fixes for errors discovered later.
 
 The problems stack up:
+
 - A typo in a formula silently produces wrong numbers.
 - Adding a new data source means rebuilding the merge by hand.
 - There is no record of what changed between runs.

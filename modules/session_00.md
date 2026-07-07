@@ -183,6 +183,7 @@ If you plan to work on exercises off-campus, you will need to connect via VPN fi
 ## Additional Resources
 
 **Cheat sheets**
+
 - [Conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
 - [Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 - [VS Code keyboard shortcuts — Windows](https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf)
@@ -190,6 +191,7 @@ If you plan to work on exercises off-campus, you will need to connect via VPN fi
 - [Bash Commands cheat sheet](https://linuxsimply.com/wp-content/uploads/2023/04/Basic-linux-commands-cheat-sheet-by-linuxsimply.com_.pdf)
 
 **Video walkthroughs**
+
 - [Downloading and Installing Miniconda3](https://www.youtube.com/watch?v=-H_onyfW9VE)
 - [Installing Git on Windows](https://youtu.be/4xqVv2lTo40?si=GVTTywH1x-hzSGE6&t=33)
 - [Installing VSCode on Windows](https://www.youtube.com/watch?v=CPmQwlycfGI)
