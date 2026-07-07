@@ -71,19 +71,19 @@ Three things happen here:
 
 Before merging, the join key columns need to be in a consistent format. Two problems come from the API data in `schools.csv`:
 
-- `ncessch` was returned as a float: `360007702472.0`. The survey CSV stores it without the decimal: `360007702472`. These will not match unless we normalize both sides.
-- `zip_mailing` was returned as a float: `10001.0`. ZIP codes are five-digit strings and need zero-padding for short codes.
+- `ncessch` is stored as an integer: `360007702472`. The survey CSV also stores it as an integer, but both need to be normalized to strings before merging so the types match.
+- `zip_mailing` is stored as an integer: `10001`. ZIP codes are five-digit strings and need zero-padding for short codes.
 
-The enrollment `zip` column comes from Oracle as a string but may also need zero-padding.
+The enrollment `zip` column comes from Oracle as an integer but may also need zero-padding.
 
-The normalization pattern for a float-to-clean-string conversion is:
+The normalization pattern for an integer-to-clean-string conversion is:
 
 ```python
 column.astype(str).str.split('.').str[0]
 ```
 
-- `.astype(str)` converts `360007702472.0` → `'360007702472.0'`
-- `.str.split('.')` splits on the decimal point → `['360007702472', '0']`
+- `.astype(str)` converts `360007702472` → `'360007702472'`
+- `.str.split('.')` splits on the decimal point → `['360007702472']`
 - `.str[0]` takes the first part → `'360007702472'`
 
 For ZIP codes, append `.str.zfill(5)` to pad short codes with leading zeros: `'7102'` → `'07102'`.

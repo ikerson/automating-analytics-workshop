@@ -46,7 +46,7 @@ print(df)
 
 Run from the repo root:
 
-```zsh
+```bash
 python scratch.py
 ```
 
@@ -89,6 +89,16 @@ print(df.head(10))
 ```
 
 Use this first every time you load a new file.
+
+### `.columns`
+
+Returns a list of column names:
+
+```python
+print(df.columns)
+```
+
+Use this to check column names before selecting them. Column names must match exactly when you select them later.
 
 ### `.info()`
 
@@ -134,6 +144,24 @@ print(names_only.head())
 ```
 
 Column selection is how every module in this pipeline trims down a wide DataFrame to only the columns it actually needs. In `transform.py`, `get_students()` selects six columns from the full Oracle enrollment result before doing anything else with the data.
+
+## Dropping Missing Values
+
+Drop rows with any missing values:
+
+```python
+df_clean = df.dropna()
+print(df_clean.info())
+```
+
+Dropping rows with a subset of missing values is also possible:
+
+```python
+df_clean = df.dropna(subset=['middle_school_name'])
+print(df_clean.info())
+``` 
+
+This is how `transform.py` drops rows with missing `ncessch` values before merging with the schools CSV.
 
 ## Filtering Rows
 
@@ -213,8 +241,8 @@ school_df.info()
 ```
 
 A few things to notice:
-- `ncessch` and `zip_mailing` appear as floats — `360007702472.0`, `10001.0`. These are IDs that should be strings. This is a quirk of how the Urban Institute API returns them; `transform.py` normalizes them in Session 5 before merging.
-- `school_level` encodes the school type: `2.0` means middle school.
+- `ncessch` and `zip_mailing` appear as integers — `360007702472`, `10001`. These are IDs that should be strings; `transform.py` normalizes them in Session 5 before merging.
+- `school_level` encodes the school type: `2` means middle school.
 - There are thousands of rows — every NY and NJ school in the 2019 CCD directory.
 
 This file was downloaded from the Urban Institute Education Data Portal. In Sessions 11–12 you will write the Python code that generates it automatically.

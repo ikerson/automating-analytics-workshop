@@ -360,4 +360,4 @@ The starter script is at [`exercises/session_03_exercise.py`](../exercises/sessi
 
 - [*Automate the Boring Stuff with Python*, Chapters 1–7](https://automatetheboringstuff.com/) — the full source material this session summarizes
 - [Python official tutorial](https://docs.python.org/3/tutorial/)
-- [Python data types cheat sheet (DataCamp)](https://www.datacamp.com/cheat-sheet/python-data-types-cheat-sheet)
+- [Python official documentation](https://docs.python.org/3/)

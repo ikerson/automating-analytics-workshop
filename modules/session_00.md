@@ -187,7 +187,6 @@ If you plan to work on exercises off-campus, you will need to connect via VPN fi
 - [Conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
 - [Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 - [VS Code keyboard shortcuts — Windows](https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf)
-- [Windows Command Line cheat sheet](https://drive.google.com/file/d/1qoAbZb0M2Adka2f--JoqIXps_SWZNJX8/view)
 - [Bash Commands cheat sheet](https://linuxsimply.com/wp-content/uploads/2023/04/Basic-linux-commands-cheat-sheet-by-linuxsimply.com_.pdf)
 
 **Video walkthroughs**

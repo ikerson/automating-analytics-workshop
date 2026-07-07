@@ -224,5 +224,5 @@ This setup carries through every remaining session. You will activate `student-r
 
 ## Additional Resources
 
-- [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/_downloads/843d9e0198f2a193a3484886fa28163c/conda-cheatsheet.pdf)
+- [Conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
 - [Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf)
